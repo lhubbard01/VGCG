@@ -1,7 +1,10 @@
 import re
-def isValid(name):
+
+from typing import List
+
+def isValid(name: str):
   """checks the validity of a name as a candidate for pythonic symbol table"""
-  if !name[0].isalpha() or name[0] != "_":
+  if not (name[0].isalpha() or name[0] == "_"):
     return False
   elif re.match(r"\s", name):
     return False
@@ -31,8 +34,10 @@ class xBound:
     self.count = count
 
 
+  
   def __repr__(self):
-    return {"name": self.name, "count": self.count}
+    return str({"name": self.name, "count": self.count})
+
 
   def __str__(self):
     return str(self)
@@ -40,7 +45,7 @@ class xBound:
 
 class ModuleIntermediateRepr:
   """Contains information describing a module """
-  def __init__(self, name, inbound: List[xBound], outbound: List[xBound], isNative: bool isParametric: bool, hypers: dict, title: str = None):
+  def __init__(self, name, inbound: List[xBound], outbound: List[xBound], isNative: bool, isParametric: bool, hypers: dict, title: str = None):
     self.isNative = isNative
     self.isParametric = isParametric
     self.name = name
