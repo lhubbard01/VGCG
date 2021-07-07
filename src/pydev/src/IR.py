@@ -27,7 +27,8 @@ class xBound:
     if not isValid(name):
       raise ValueError(f"name MUST be python-valid. received {name}")
     self.name = name
-    
+    if not isinstance(count, int):
+      raise TypeError
     if count <= 0:
       raise ValueError("count must be a positive integer, representing the output vector dimension")
 
@@ -40,7 +41,7 @@ class xBound:
 
 
   def __str__(self):
-    return str(self)
+    return str(self.__repr__())
 
 
 class ModuleIntermediateRepr:
