@@ -1,6 +1,6 @@
 import re
 
-from typing import List
+from typing import List, NewType
 
 def isValid(name: str):
   """checks the validity of a name as a candidate for pythonic symbol table"""
@@ -16,6 +16,11 @@ def isValid(name: str):
     return False
   
   return True
+
+
+
+
+
 
 class xBound:
   """renders readable the connection information, hopefully. 
@@ -34,7 +39,6 @@ class xBound:
 
     self.count = count
 
-
   
   def __repr__(self):
     return str({"name": self.name, "count": self.count})
@@ -43,11 +47,17 @@ class xBound:
   def __str__(self):
     return str(self.__repr__())
 
+InBound  = xBound
+OutBound = xBound
 
 class ModuleIntermediateRepr:
   """Contains information describing a module """
-  def __init__(self, name, inbound: List[xBound], outbound: List[xBound], isNative: bool, isParametric: bool, hypers: dict, title: str = None):
+  def __init__(self, name: str, inbound: List[InBound], outbound: List[OutBound], isNative: bool, isParametric: bool, hypers: dict, title: str = None):
+    if not isinstance(isNative, bool):
+      raise TypeError
     self.isNative = isNative
+    if not isinstance(isParametric, bool):
+      raise TypeError
     self.isParametric = isParametric
     self.name = name
     self.title = (title if title else name)

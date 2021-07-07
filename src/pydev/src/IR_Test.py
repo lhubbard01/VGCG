@@ -5,9 +5,24 @@ import torch.nn as nn
 
 from unittest import TestCase
 from unittest.suite import TestSuite
-"""
-def before
-def after"""
+
+def before():
+
+    name  = "Linear"
+    title = "Linear1" #name is module name, title is name in ModuleDict
+
+    isNative     = True #contained within pytorch?
+    isParametric = True #gradient info maintained for backprop?
+    hypers = {"bias": True} #other hyper parameters
+
+    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
+    conn2 = InBound("Y", 50)
+    
+    conn3 = OutBound("Z", 50) #outputs to Z 
+    #Note, is useful for inbound and outbout as offers guarantee 
+    #it is connected to intended target
+
+"""def after"""
 
 
 
@@ -38,23 +53,73 @@ class Test_xBound(TestCase):
   def test_xBound_StrRepr(self):
     x = xBound("S", 50)
     self.assertEqual(str(x), "{\'name\': \'S\', \'count\': 50}")
-"""class LinearLayer_Success(TestCase):
-class LinearLayer_isNative_ValueError(TestCase)
-with self.assertRaises(ValueError) as ve:
-  x
-self.assertEqual( cm.exception, 
-class LinearLayer_isParametric_ValueError(TestCase)
-with self.assertRaises(ValueError) as ve:
-  x
-self.assertEqual( cm.exception, 
-class LinearLayer_xBound_FailGracefully(TestCase)
-with self.assertRaises(ValueError) as ve:
-  x
-self.assertEqual( cm.exception, 
-class IntermediateRepresentation__TestSuite(TestSuite)
-"""
 
 
-"""if __name__ == "__main__":
-  unittest.main()"""
+class Test_IR_CreateLinear(TestCase):
+  def setUp(self):
+    before()
+  def test__LinearLayer_Success(TestCase):
+    name  = "Linear"
+    title = "Linear1" #name is module name, title is name in ModuleDict
+
+    isNative     = True #contained within pytorch?
+    isParametric = True #gradient info maintained for backprop?
+    hypers = {"bias": True} #other hyper parameters
+
+    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
+    conn2 = InBound("Y", 50)
+    
+    conn3 = OutBound("Z", 50) #outputs to Z 
+    #Note, is useful for inbound and outbout as offers guarantee 
+    #it is connected to intended target
+
+    ModuleIntermediateRepr(name = name,
+          inbound = [conn1, conn2],
+          outbound = [conn3],
+          isNative = isNative,
+          isParametric = isParametric, 
+          hypers = hypers,
+          title = title)
+  def test__LinearLayer_isNative_TypeError(self):
+    name  = "Linear"
+    title = "Linear1" #name is module name, title is name in ModuleDict
+
+    isNative     = True #contained within pytorch?
+    isParametric = True #gradient info maintained for backprop?
+    hypers = {"bias": True} #other hyper parameters
+
+    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
+    conn2 = InBound("Y", 50)
+    
+    conn3 = OutBound("Z", 50) #outputs to Z 
+    with self.assertRaises(TypeError) as cm:
+      ModuleIntermediateRepr(name = name,
+          inbound = [conn1, conn2],
+          outbound = [conn3],
+          isNative = 0,
+          isParametric = isParametric, 
+          hypers = hypers,
+          title = title)
+  
+  def test__LinearLayer_isParametric_TypeError(self):
+    name  = "Linear"
+    title = "Linear1" #name is module name, title is name in ModuleDict
+
+    isNative     = True #contained within pytorch?
+    isParametric = True #gradient info maintained for backprop?
+    hypers = {"bias": True} #other hyper parameters
+
+    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
+    conn2 = InBound("Y", 50)
+    
+    conn3 = OutBound("Z", 50) #outputs to Z 
+    with self.assertRaises(TypeError) as cm:
+      ModuleIntermediateRepr(name = name,
+          inbound = [conn1, conn2],
+          outbound = [conn3],
+          isNative = isNative,
+          isParametric = 1,
+          hypers = hypers,
+          title = title)
+  
 
