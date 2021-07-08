@@ -47,8 +47,12 @@ class xBound:
   def __str__(self):
     return str(self.__repr__())
 
-InBound  = xBound
-OutBound = xBound
+#InBound  = xBound
+#print(type(InBound))
+#OutBound = xBound
+InBound = NewType("InBound", xBound)
+OutBound = NewType("OutBound", xBound)
+#print(InBound == OutBound)
 
 class ModuleIntermediateRepr:
   """Contains information describing a module """

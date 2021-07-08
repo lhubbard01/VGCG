@@ -6,23 +6,6 @@ import torch.nn as nn
 from unittest import TestCase
 from unittest.suite import TestSuite
 
-def before():
-
-    name  = "Linear"
-    title = "Linear1" #name is module name, title is name in ModuleDict
-
-    isNative     = True #contained within pytorch?
-    isParametric = True #gradient info maintained for backprop?
-    hypers = {"bias": True} #other hyper parameters
-
-    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
-    conn2 = InBound("Y", 50)
-    
-    conn3 = OutBound("Z", 50) #outputs to Z 
-    #Note, is useful for inbound and outbout as offers guarantee 
-    #it is connected to intended target
-
-"""def after"""
 
 
 
@@ -50,14 +33,13 @@ class Test_xBound(TestCase):
     with self.assertRaises(TypeError) as cm:
       x = xBound("py_3", -65.5)
   
-  def test_xBound_StrRepr(self):
+  def test__xBound_StrRepr(self):
     x = xBound("S", 50)
     self.assertEqual(str(x), "{\'name\': \'S\', \'count\': 50}")
 
 
+xb = xBound 
 class Test_IR_CreateLinear(TestCase):
-  def setUp(self):
-    before()
   def test__LinearLayer_Success(TestCase):
     name  = "Linear"
     title = "Linear1" #name is module name, title is name in ModuleDict
@@ -66,10 +48,11 @@ class Test_IR_CreateLinear(TestCase):
     isParametric = True #gradient info maintained for backprop?
     hypers = {"bias": True} #other hyper parameters
 
-    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
-    conn2 = InBound("Y", 50)
     
-    conn3 = OutBound("Z", 50) #outputs to Z 
+    conn1 = InBound(xBound("S", 50)) #receives concat of two layers, S and Y
+    conn2 = InBound(xBound("Y", 50))
+    
+    conn3 = OutBound(xb("Z", 50)) #outputs to Z 
     #Note, is useful for inbound and outbout as offers guarantee 
     #it is connected to intended target
 
@@ -88,10 +71,10 @@ class Test_IR_CreateLinear(TestCase):
     isParametric = True #gradient info maintained for backprop?
     hypers = {"bias": True} #other hyper parameters
 
-    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
-    conn2 = InBound("Y", 50)
+    conn1 = InBound(xb("S", 50)) #receives concat of two layers, S and Y
+    conn2 = InBound(xb("Y", 50))
     
-    conn3 = OutBound("Z", 50) #outputs to Z 
+    conn3 = OutBound(xb("Z", 50)) #outputs to Z 
     with self.assertRaises(TypeError) as cm:
       ModuleIntermediateRepr(name = name,
           inbound = [conn1, conn2],
@@ -109,10 +92,10 @@ class Test_IR_CreateLinear(TestCase):
     isParametric = True #gradient info maintained for backprop?
     hypers = {"bias": True} #other hyper parameters
 
-    conn1 = InBound("S", 50) #receives concat of two layers, S and Y
-    conn2 = InBound("Y", 50)
+    conn1 = InBound(xb("S", 50)) #receives concat of two layers, S and Y
+    conn2 = InBound(xb("Y", 50))
     
-    conn3 = OutBound("Z", 50) #outputs to Z 
+    conn3 = OutBound(xb("Z", 50)) #outputs to Z 
     with self.assertRaises(TypeError) as cm:
       ModuleIntermediateRepr(name = name,
           inbound = [conn1, conn2],
