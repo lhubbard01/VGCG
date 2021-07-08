@@ -1,0 +1,15 @@
+{
+  "name": "js_ipc",
+  "version": "0.0.1",
+  "description": "front and backend interface for communicating with python over data packets through pipes",
+  "main": "jsipc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "fifo-js": "^2.1.0"
+  }
+}

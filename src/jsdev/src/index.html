@@ -1,0 +1,81 @@
+<!Doctype html>
+
+<html>
+<head>
+  <title>App 1</title>
+</head>
+
+
+<body>
+<div id="content">
+  <form id="formupdate" action="/api/update"  method="POST">
+    <input id="msg-input" /> 
+    <button id="sendbtn">Send</button>
+  </form>
+  <textarea id="outcome" readonly rows="10" cols="70"></textarea>
+</div>
+</body>
+<script> 
+  let history = [];
+
+
+
+
+
+  let msg_input = document.getElementById("msg-input");
+  let form_update = document.getElementById("formupdate");
+  function appendHtml(el, str) {
+    var div = document.createElement('div');
+    div.innerHTML = str;
+    while (div.children.length > 0) {
+      el.appendChild(div.children[0]);
+      }
+  }
+  
+
+  async function handleUpdate(e){
+    const data = JSON.stringify({data: e});
+ 
+    const options = {
+              method : "POST",
+              headers:  {"Content-Type":"application/json"},
+              body: data
+        };
+    
+    const res = await fetch("/api/update", options)
+      .then(res => res.json())
+      .catch(err => console.error(err));
+
+    let outcome = document.getElementById("outcome");
+    outcome.value = res.msg;
+    console.log(res.msg);
+    console.log(res)
+    h = document.body
+    b = document.getElementById("content");
+    new_p = document.createElement("p")
+    new_p.appendChild(document.createTextNode(res.msg));
+    //appendHtml(document.html, res.msg);
+    b.appendChild(new_p)
+    console.log(document.body);
+    //appendHtml(document.html, res.msg);  
+    //console.log(document.body);
+  }
+
+  form_update.addEventListener("submit", e => {
+    e.preventDefault();
+    text_data = msg_input.value;
+    msg_input.value = "";
+    handleUpdate(text_data);
+  });
+
+    
+  
+
+
+/*
+   showbtn.addEventListener("click", e => {
+      e.preventDefault();
+      handleUpdate("show()");
+    });*/
+</script>
+</html>
