@@ -27,7 +27,11 @@
   <div id="right-sb" style="background: black;" onmousemove="MousePosDebugger(event)">
     <form id="formupdate" action="/api/update"  method="POST">
     <input id="msg-input" /> 
-    <button id="sendbtn" onclick=handleClick>Send</button>
+    <button id="sendbtn" onclick="update_send(event)">Send</button>
+    </form>
+    <form id="formmodel" action="/api/model"  method="POST" >
+    <input id="model-input" /> 
+    <button id="send" onclick="handleSendLayer(event)">Send 2</button>
   </form>
   <textarea id="outcome" readonly rows="10" cols="70"></textarea>
 
@@ -54,13 +58,18 @@
   console.log(ctx);
 
   let msg_input = document.getElementById("msg-input");
+  let model_input = document.getElementById("model-input");
   let form_update = document.getElementById("formupdate");
+  let form_model = document.getElementById("formmodel");
   var outcome_box = document.getElementById("outcome");
   var draw = document.getElementById("drawable");
   
   async function handlePyMessageWrite(e){
     let value_bfr = outcome_box.value;
-    const data = JSON.stringify({data: e});
+
+    console.log(e);
+    const data = JSON.stringify({data: e, route: "pyexec"});
+    console.log(data);
     const options = {
               method : "POST",
               headers:  {"Content-Type":"application/json"},
@@ -70,6 +79,7 @@
       .then(res => res.json())
       .catch(err => console.error(err));
 
+    console.log(options);
     outcome_box.value = res.msg + "\n" + value_bfr;
 
     h = document.body
@@ -81,17 +91,36 @@
     b.appendChild(new_p)
   }
 
-  form_update.addEventListener("submit", e => {
+  function update_send(e) {
     e.preventDefault();
-    text_data = msg_input.value;
+    let text_data = msg_input.value;
     msg_input.value = "";
     handlePyMessageWrite(text_data);
-  });
+  }
+  form_update.addEventListener("submit", update_send);
   //draw.on_click = handleDrawClick
     
+  async function handleSendLayer(e){
+      let model_input = document.getElementById("model-input");
+      let value_bfr = outcome_box.value;
+      alert (model_input);
+      const data = JSON.stringify({data:e, route: "model"});
+      const options = {
+        method : "POST",
+        headers: {"Content-Type":"application/json"},
+        body:data};
+      const res = await fetch("/api/model", options).then(res => res.json()).catch(err =>console.error(err));
+
+      outcome_box.value = res.msg + "\n" + value_bfr;
+
+  }
   
-
-
+  form_model.addEventListener("submit", e => {
+    e.preventDefault();
+    let text_data = model_input.value;
+    model_input.value = "";
+    handleSendLayer(text_data);
+  });
 /*
    showbtn.addEventListener("click", e => {
       e.preventDefault();
