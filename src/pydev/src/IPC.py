@@ -17,6 +17,38 @@ IPC_FIFO_NAME_B = "pipe_b"
 
 
 
+
+
+
+
+import struct
+#<I
+IPC_FIFO_MODEL = "model_pipe"
+
+
+
+class FifoModel:
+  def __init__(self, loc):
+    self.loc = loc
+    try:
+      self.pipe =  os.open(os.path.join(self.loc, IPC_FIFO_MODEL), os.O_WRONLY)
+    except Exception as e:
+      raise e
+  
+  def __call__(self, msg):
+    self.write(msg)
+  
+  def write(self, msg):
+    os.write(self.pipe, bytes(msg,"utf-8"))
+
+  def exit(self):
+    return os.remove(os.path.join(self.loc,IPC_FIFO_MODEL))
+
+    
+def moveToModel(msg):
+  global fifo_model
+  fifo_model(msg)
+
 exec_history = []
 def log_input(msg, *args):
   preface_str = ""
@@ -71,11 +103,19 @@ def re_match(msg):
 def process_message(msg):
   try:
     msg = bytes_to_str(msg)
-    msg = log_input(msg, "INBOUND")
-    msg = handle_message_runtime(msg) 
+    print(msg)
+
+
+    exec("msgdict = "+msg, globals(), locals())
+    msg = log_input(msgdict, "INBOUND")
+    if msgdict["route"] == "model":
+      msg=moveToModel(msgdict["data"])
+    elif msgdict["route"] == "update":
+      msg = handle_message_runtime(msg) 
     log_input(msg, "OUTBOUND")
     return str(msg)
   except Exception as e:
+    print(msg)
     return str(type(e))+ "\n" + str(e)
 
 
@@ -92,6 +132,13 @@ class IPC_Handler:
         try:
           fifo_b = os.open(os.path.join(loc, IPC_FIFO_NAME_B), os.O_WRONLY)
           print("Pipe B is opened")
+          break
+        except:
+          pass
+      while True:
+        try:
+          fifo_model = FifoModel(loc)
+          print("model fifo is opened")
           break
         except:
           pass
@@ -120,7 +167,7 @@ class IPC_Handler:
       print("OS removing IPC FIFO PIPES")
       os.remove(os.path.join(loc, IPC_FIFO_NAME_A))
       os.remove(os.path.join(loc,IPC_FIFO_NAME_B))
-
+      fifo_model.exit()
   print("exiting runtime")
 if __name__ == "__main__":
   IPC_Handler(loc = input("enter target location"))
