@@ -42,7 +42,7 @@ xb = xBound
 class Test_IR_CreateLinear(TestCase):
   def test__LinearLayer_Success(TestCase):
     name  = "Linear"
-    title = "Linear1" #name is module name, title is name in ModuleDict
+    title = "Linear" 
 
     isNative     = True #contained within pytorch?
     isParametric = True #gradient info maintained for backprop?
@@ -62,10 +62,10 @@ class Test_IR_CreateLinear(TestCase):
           isNative = isNative,
           isParametric = isParametric, 
           hypers = hypers,
-          title = title)
+          mType = title)
   def test__LinearLayer_isNative_TypeError(self):
     name  = "Linear"
-    title = "Linear1" #name is module name, title is name in ModuleDict
+    title = "Linear"
 
     isNative     = True #contained within pytorch?
     isParametric = True #gradient info maintained for backprop?
@@ -82,11 +82,11 @@ class Test_IR_CreateLinear(TestCase):
           isNative = 0,
           isParametric = isParametric, 
           hypers = hypers,
-          title = title)
+          mType = title)
   
   def test__LinearLayer_isParametric_TypeError(self):
     name  = "Linear"
-    title = "Linear1" #name is module name, title is name in ModuleDict
+    title = "Linear1" 
 
     isNative     = True #contained within pytorch?
     isParametric = True #gradient info maintained for backprop?
@@ -103,6 +103,6 @@ class Test_IR_CreateLinear(TestCase):
           isNative = isNative,
           isParametric = 1,
           hypers = hypers,
-          title = title)
+          mType= title)
   
 
