@@ -39,5 +39,4 @@ class Msg:
     """
     
     exec("self.as_dict = " + self.payload, globals(), locals())
-    return self.as_dict
-
+    return self.as_dict, self

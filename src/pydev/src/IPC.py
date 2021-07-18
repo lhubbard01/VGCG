@@ -1,6 +1,7 @@
 #Adapted from
 #https://levelup.gitconnected.com/inter-process-communication-between-node-js-and-python-2e9c4fda928d
 import os
+import json
 import select
 import signal
 import re
@@ -36,10 +37,17 @@ class FifoModel:
       raise e
   
   def __call__(self, msg):
+    print(type(msg))
     self.write(msg)
-  
+
   def write(self, msg):
-    os.write(self.pipe, bytes(msg,"utf-8"))
+    if not isinstance(msg, bytes):
+      if not isinstance(msg, str):
+        os.write(self.pipe, bytes(str(msg),"utf-8"))
+      else:
+        os.write(self.pipe, bytes(msg,"utf-8"))
+    else:
+      os.write(self.pipe, msg)
 
   def exit(self):
     return os.remove(os.path.join(self.loc,IPC_FIFO_MODEL))
@@ -98,24 +106,32 @@ def re_match(msg):
     return str(te) 
 
 
-
-
 def process_message(msg):
   try:
-    msg = bytes_to_str(msg)
-    print(msg)
+    msgdict = None
+    try: 
+      msgdict = json.loads(msg)
 
+      print(msgdict, 108) 
+    except Exception as e:
+      raise e
+    msgstr = bytes_to_str(msg)
+    print(106, msgstr)
+    
 
-    exec("msgdict = "+msg, globals(), locals())
-    msg = log_input(msgdict, "INBOUND")
+    #exec("msgdict= "+msg.replace("\\",""), globals(),locals())
+    #print(msgdict)
+    out1 = log_input(msgdict, "INBOUND")
     if msgdict["route"] == "model":
-      msg=moveToModel(msgdict["data"])
+      msgstro=moveToModel(msg)#msgdict["data"])
+    
+      print("moved to model")
     elif msgdict["route"] == "update":
       msg = handle_message_runtime(msg) 
     log_input(msg, "OUTBOUND")
     return str(msg)
   except Exception as e:
-    print(msg)
+    raise e
     return str(type(e))+ "\n" + str(e)
 
 
@@ -124,6 +140,7 @@ def process_message(msg):
 #signal
 class IPC_Handler:
   def __init__(self, loc):
+    global fifo_model
     os.mkfifo(IPC_FIFO_NAME_A)
     try:
       fifo_a = os.open(os.path.join(loc, IPC_FIFO_NAME_A), os.O_RDONLY | os.O_NONBLOCK)
@@ -151,7 +168,10 @@ class IPC_Handler:
           while True:
             if (fifo_a, select.POLLIN) in poll.poll(1000):
               msg = get_message(fifo_a)
+              print(157)
               outbound = process_message(msg)
+
+              print(160)
               os.write(fifo_b, bytes(outbound,"utf-8"))
               print("--------received from JS--------")
               print("    " + msg.decode("utf-8"))
@@ -169,5 +189,7 @@ class IPC_Handler:
       os.remove(os.path.join(loc,IPC_FIFO_NAME_B))
       fifo_model.exit()
   print("exiting runtime")
+
+fifo_model = None
 if __name__ == "__main__":
   IPC_Handler(loc = input("enter target location"))
