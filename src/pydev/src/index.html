@@ -1,0 +1,140 @@
+<!Doctype html>
+
+<html>
+<head>
+  <title>App 1</title>
+</head>
+<script>
+  function handleDrawClick(e){
+    ctx.moveTo(0,0);
+    ctx.lineTo(canvas.width, canvas.height, 0, 1);  
+    ctx.stroke();
+  }
+  function MousePosDebugger(e){
+    var loc = document.getElementById("writeTo");
+    loc.innerHTML = "<p>screenX: " + e.screenX  + "  screenY: " + e.screenY  + "</p>"
+    + "<p>\nclientX: " + e.clientX + "  clientY: " + e.clientY+"</p>"
+    +"<p>offsetX: " + e.offsetX + " offsetY: " + e.offsetY + "</p>"
+    +"<p>Movement X: "+e.movementX+ " movementY: "+e.movementY+"</p>"
+    +"<p>layerX: "+e.layerX+" layerY: " + e.layerY + "</p>";
+  }
+</script>
+<body>
+<div id="content" style="display: grid; grid-template-columns: 8fr 3fr; gap: 0px;">
+  <div id="drawCont" style=" height: 480px; background: blue" >
+  <canvas style="width: 100%; height: 100%" id="drawable" onmousemove="MousePosDebugger(event)">Drawable</canvas>
+  </div>
+  <div id="right-sb" style="background: white;" onmousemove="MousePosDebugger(event)">
+    <form id="formupdate" action="/api/update"  method="POST" target="_blank">
+      <input id="msg-input" /> 
+      <button id="sendbtn" onclick="update_send(event)">Send</button>
+    </form>
+
+    <form id="formmodel" action="/api/model"  method="POST" target="_blank" >
+      <label for="hyper-param">Hypers:</label><input id="model-input" name="hyperp" /> <br>
+      <label for="inbounds">in features:</label><input id="in-features" name="infeatures" /> <br>
+      <label for="outbounds">out features:</label><input id="out-features" name="outfeatures" /> <br>
+      <label for="Name">Name</label><input id="Name" name="Name"/><br>
+      <label for="m-type">mType</label><input id="mtype" name="mType"/><br>
+      <label for="is-native">isNative</label><input id="isnative" name="isNative" type="checkbox"/><br>
+    <label for="is-parametric">isParametric</label><input id="isparametric" name="isParametric" type="checkbox"/><br>
+    <button id="send" onclick="handleSendLayer(event)">Send 2</button>
+  </form>
+  
+  <textarea id="outcome" readonly rows="10" cols="70"></textarea>
+
+
+
+
+
+
+  </div>
+</div>
+</body>
+
+<p id="writeTo"></p>
+<footer>Footer</footer>
+
+<script> 
+  let history = [];
+  var canvas = document.getElementById("drawable");
+  
+  var ctx = canvas.getContext("2d");
+
+
+  console.log(canvas);
+  console.log(ctx);
+
+  let msg_input = document.getElementById("msg-input");
+  let model_input = document.getElementById("model-input");
+  let form_update = document.getElementById("formupdate");
+  let form_model = document.getElementById("formmodel");
+  var outcome_box = document.getElementById("outcome");
+  var draw = document.getElementById("drawable");
+  
+  async function handlePyMessageWrite(e){
+    let value_bfr = outcome_box.value;
+
+    console.log(e);
+    const data = JSON.stringify({data: e, route: "pyexec"});
+    console.log(data);
+    const options = {
+              method : "POST",
+              headers:  {"Content-Type":"application/json"},
+              body: data
+        };
+    const res = await fetch("/api/update", options)
+      .then(res => res.json())
+      .catch(err => console.error(err));
+
+    console.log(options);
+    outcome_box.value = res.msg + "\n" + value_bfr;
+
+    h = document.body
+    b = document.getElementById("content");
+    new_p = document.createElement("p")
+    new_p.appendChild(document.createTextNode(res.msg));
+    //appendHtml(document.html, res.msg);
+    
+    b.appendChild(new_p)
+  }
+
+  function update_send(e) {
+    e.preventDefault();
+    let text_data = msg_input.value;
+    msg_input.value = "";
+    handlePyMessageWrite(text_data);
+  }
+  form_update.addEventListener("submit", update_send);
+  //draw.on_click = handleDrawClick
+    
+  
+  async function handleSendLayer(e){
+      let model_input = document.getElementById("model-input");
+      let value_bfr = outcome_box.value;
+      alert (JSON.stringify(e));
+      const data = JSON.stringify({data:e, route: "model"});
+      if (e.isTrusted == true)
+        return 1;
+      const options = {
+        method : "POST",
+        headers: {"Content-Type":"application/json"},
+        body:data};
+      const res = await fetch("/api/model", options).then(res => res.json()).catch(err =>console.error(err));
+
+      outcome_box.value = res.msg + "\n" + value_bfr;
+
+  }
+  form_model.addEventListener("submit", e => {
+    e.preventDefault();
+    let text_data = {hyperp: JSON.stringify(JSON.parse("{"+model_input.value+"}")), isParametric: true ? isparametric.value == "on" : false, isNative: true? isnative.value == "on": false , mType: mtype.value, Name: Name.value};
+    model_input.value = "";
+    handleSendLayer(text_data);
+  });
+/*
+   showbtn.addEventListener("click", e => {
+      e.preventDefault();
+      handleUpdate("show()");
+    });*/
+</script>
+</html>
