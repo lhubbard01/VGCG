@@ -11,21 +11,46 @@ def buildConnsDict(inbounds):
 class ModelCache:
   def __init__(self):
     self.cache = {}
+    self.conns = {}
 
-  def recv(self, msg, asdict: bool = False):
+  def recv(self, msg, data_type: str , asdict: bool = False):
     message = msg#Msg(msg).proc()
     
-    try:
-      if not asdict:
-        self.cache[message.Name]  = message# ModuleIntermediateRepr(**message)
+    
 
+
+
+
+
+    if data_type == "model_cache":
+      try:
+        if not asdict:
+          self.cache[message.Name]  = message# ModuleIntermediateRepr(**message)
+        else:
+          self.cache[message["Name"]]  = message# ModuleIntermediateRepr(**message)
+      except KeyError as ke:
+        print(message)
+
+    elif data_type =="conn":
+      try:
+        if not asdict: 
+          self.conns
+        else: 
+          if not message["in"]["Name"] in self.conns.keys():
+            self.conns[message["in"]["Name"]] = {"ins":{}, "outs":{}}
+          self.conns[message["in"]["Name"]]  ["ins"].append({message["in"]["Name"] : message["in"]["count"]})
+          if not message["out"]["Name"] in self.conns.keys():
+            self.conns[message["out"]["Name"]] = {"ins":{}, "outs":{}}
+          self.conns[message["out"]["Name"]] ["outs"].append({message["out"]["Name"]: message["out"]["count"]})
+
+    elif data_type == "delete":
+      #TODO handle deletion of different modules or connections
+      pass
+    elif data_type == "signal": 
+      #TODO handle processing of 1) build signal 2) launch signal
+      pass
     else:
-      
-      self.cache[message["Name"]]  = message# ModuleIntermediateRepr(**message)
-
-
-    except KeyError as ke:
-      print(message)
+      raise ValueError("unexpected data dictionary!")
 
 
   def buildConns(self):
