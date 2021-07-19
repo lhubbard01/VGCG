@@ -1,26 +1,9 @@
 import torch
 import torch.nn 
-import torch.nn 
+
 from collections import OrderedDict
+
 from IR import ModuleIntermediateRepr
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -93,7 +76,7 @@ class GraphBuild:
 
     self.not_done.pop(self.not_done.index(mod.name))
   
-    self.model_str += self.indent * 2 * " " + mod.name + " = " + self.init_call(self.reprs[mod.name]) + "\n"# repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
+    self.model_str += self.indent * 2 * " " + "self." + mod.name + " = " + self.init_call(self.reprs[mod.name]) + "\n"# repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
     #This is the forward pass string 
     self.fwd_str   += self.indent * 2 * " " + self.dConn[mod.name]["repr_fwd"] + "\n"
 
@@ -144,20 +127,6 @@ class GraphBuild:
       name+=mod
     
     return name, name+" = torch.cat((" + self.getInSyms(module_ins) + "), dim = 1)"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
