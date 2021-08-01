@@ -2,6 +2,7 @@
 #https://levelup.gitconnected.com/inter-process-communication-between-node-js-and-python-2e9c4fda928d
 import os
 import json
+import logging
 import select
 import signal
 import re
@@ -26,7 +27,8 @@ import struct
 #<I
 IPC_FIFO_MODEL = "model_pipe"
 
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class FifoModel:
   def __init__(self, loc):
@@ -37,7 +39,7 @@ class FifoModel:
       raise e
   
   def __call__(self, msg):
-    print(type(msg))
+    logging.info(type(msg))
     self.write(msg)
 
   def write(self, msg):
@@ -50,7 +52,10 @@ class FifoModel:
       os.write(self.pipe, msg)
 
   def exit(self):
-    return os.remove(os.path.join(self.loc,IPC_FIFO_MODEL))
+    try:
+      os.remove(os.path.join(self.loc,IPC_FIFO_MODEL))
+    except FileNotFoundError as fnfe:
+      logger.critical(fnfe)
 
     
 def moveToModel(msg):
@@ -62,7 +67,9 @@ def log_input(msg, *args):
   preface_str = ""
   for arg in args:
     preface_str += arg + " "
-  print(preface_str, "LOGGING: ", msg, " type: ", type(msg))
+
+
+  logging.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
   return msg
 
 def handle_message_runtime( msg):
@@ -81,10 +88,13 @@ def handle_message_runtime( msg):
       else:
         outbound = True
     except SyntaxError as sse:
+      logging.critical(sse)
       raise sse
 
   exec_history.append(msg)
   return outbound
+
+
 def get_message(fifo, nbytes = 1024):
   return os.read(fifo, nbytes)
 
@@ -102,7 +112,7 @@ def re_match(msg):
     elif "2021" in msg:
       return "TIME2: " + msg
   except TypeError as te:
-    print(te)
+    logging.critical(te)
     return str(te) 
 
 
@@ -112,11 +122,11 @@ def process_message(msg):
     try: 
       msgdict = json.loads(msg)
 
-      print(msgdict, 108) 
+      logging.debug(msgdict)
     except Exception as e:
       raise e
     msgstr = bytes_to_str(msg)
-    print(106, msgstr)
+    logging.debug(msgstr)
     
 
     #exec("msgdict= "+msg.replace("\\",""), globals(),locals())
@@ -124,31 +134,60 @@ def process_message(msg):
     out1 = log_input(msgdict, "INBOUND")
     if msgdict["route"] == "model":
       msgstro=moveToModel(msg)#msgdict["data"])
-    
-      print("moved to model")
+      logging.info("moved to model")
+
     elif msgdict["route"] == "update":
       msg = handle_message_runtime(msg) 
+      logging.info("handle interpreter state update") 
+
     log_input(msg, "OUTBOUND")
+
     return str(msg)
+
+
   except Exception as e:
+    
+    logging.critical(e)
     raise e
-    return str(type(e))+ "\n" + str(e)
+    #return str(type(e))+ "\n" + str(e)
 
 
 #def kb_int():
 
 #signal
+
+def pend_on_pipe(loc, name, F_flags):
+  while True:
+    try:
+      fifo = os.open(os.path.join(loc, name), F_flags) 
+      logging.info("pipe ", name, " is opened")
+      return fifo
+    except: 
+      pass
+
+
 class IPC_Handler:
   def __init__(self, loc):
     global fifo_model
     os.mkfifo(IPC_FIFO_NAME_A)
+
+
     try:
       fifo_a = os.open(os.path.join(loc, IPC_FIFO_NAME_A), os.O_RDONLY | os.O_NONBLOCK)
-      print("pipe a is opened")
+      logging.info("pipe a is opened")
+
+      fifo_b     = pend_on_pipe(loc, IPC_FIFO_NAME_B, os.O_WRONLY)
+      logging.info("pipe b is opened")
+
+      pipe_model = FifoModel(loc)
+      logging.info("model pipe is opened")
+
+
+      """
       while True:
         try:
           fifo_b = os.open(os.path.join(loc, IPC_FIFO_NAME_B), os.O_WRONLY)
-          print("Pipe B is opened")
+          logging.info("Pipe B is opened")
           break
         except:
           pass
@@ -159,37 +198,44 @@ class IPC_Handler:
           break
         except:
           pass
-      #Polling A
+      #Polling A"""
       try:
-        print("initiating pipe polling")
+        logging.info("initiating pipe polling")
         poll = select.poll()
         poll.register(fifo_a, select.POLLIN)
         try:
           while True:
             if (fifo_a, select.POLLIN) in poll.poll(1000):
-              msg = get_message(fifo_a)
-              print(157)
-              outbound = process_message(msg)
+              logging.info("--------received from JS--------")
+              logging.info("    " + msg.decode("utf-8"))
 
-              print(160)
+              msg      = get_message(fifo_a)
+              outbound = process_message(msg)
+  
+              logging.info("-------writing------", outbound)
               os.write(fifo_b, bytes(outbound,"utf-8"))
-              print("--------received from JS--------")
-              print("    " + msg.decode("utf-8"))
+              
+
         except KeyboardInterrupt:
           pass
+
         finally:
-          print("slect poll unregistering pipe a")
+          logging.info("select poll unregistering pipe a")
           poll.unregister(fifo_a)
       finally:
-        print("os closing fifo a pipe") 
+        logger.info("os closing fifo a pipe") 
         os.close(fifo_a)
     finally:
-      print("OS removing IPC FIFO PIPES")
+      logger.info("OS removing IPC FIFO PIPES")
       os.remove(os.path.join(loc, IPC_FIFO_NAME_A))
+      logger.info("removed pipe a")
       os.remove(os.path.join(loc,IPC_FIFO_NAME_B))
+      logger.info("removed pipe b")
       fifo_model.exit()
+      logger.info("removed model pipe")
+
   print("exiting runtime")
 
 fifo_model = None
 if __name__ == "__main__":
-  IPC_Handler(loc = input("enter target location"))
+    IPC_Handler(".")
