@@ -3,8 +3,13 @@
 <html>
 <head>
   <title>App 1</title>
-</head>
+  <style>
+  nav{height: 5%; width:100%;}
+div.module{ height: 20px; width: 20px; background: "yellow"; }
+</style>
+<script type="text/javascript" src="./drawing.js"></script>
 <script>
+var drawable = drawClick;
   function handleDrawClick(e){
     ctx.moveTo(0,0);
     ctx.lineTo(canvas.width, canvas.height, 0, 1);  
@@ -19,11 +24,23 @@
     +"<p>layerX: "+e.layerX+" layerY: " + e.layerY + "</p>";
   }
 </script>
+</head>
 <body>
-<div id="content" style="display: grid; grid-template-columns: 8fr 3fr; gap: 0px;">
-  <div id="drawCont" style=" height: 480px; background: blue" >
+<nav>
+  <div class="module" id="linear" onclick="selection(this);">linear</div>
+  <div class="module" id="output" onclick="selection(this);">output</div>
+  <div class="module" id="input" onclick="selection(this);">inpuot</div>
+  <div class="module" id="bilinear" onclick ="selection(this);">bilinear</div>
+  <div class="module" id="relu" onclick="selection(this);">relu</div>
+  <div class="module" id="rect" onclick="selection(this);">relu</div>
+  <div class="module" id="connect" onclick="selection(this);">connect</div>
+</nav>
+<div id="content" style="/*display: grid; grid-template-columns: 8fr 3fr; gap: 0px;*/">
+  <div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">
+  <!--<div id="drawCont" style=" height: 480px; background: blue" >
   <canvas style="width: 100%; height: 100%" id="drawable" onmousemove="MousePosDebugger(event)">Drawable</canvas>
-  </div>
+  </div> -->
+  <aside style="right:float">
   <div id="right-sb" style="background: white;" onmousemove="MousePosDebugger(event)">
     <form id="formupdate" action="/api/update"  method="POST" target="_blank">
       <input id="msg-input" /> 
@@ -32,12 +49,13 @@
 
     <form id="formmodel" action="/api/model"  method="POST" target="_blank" >
       <label for="hyper-param">Hypers:</label><input id="model-input" name="hyperp" /> <br>
-      <label for="inbounds">in features:</label><input id="in-features" name="infeatures" /> <br>
-      <label for="outbounds">out features:</label><input id="out-features" name="outfeatures" /> <br>
-      <label for="Name">Name</label><input id="Name" name="Name"/><br>
-      <label for="m-type">mType</label><input id="mtype" name="mType"/><br>
-      <label for="is-native">isNative</label><input id="isnative" name="isNative" type="checkbox"/><br>
+      <label    for="inbounds">in features:</label><input id="in-features" name="infeatures" /> <br>
+      <label   for="outbounds">out features:</label><input id="out-features" name="outfeatures" /> <br>
+      <label        for="Name">Name</label><input id="Name" name="Name"/><br>
+      <label      for="m-type">mType</label><input id="mtype" name="mType"/><br>
+      <label   for="is-native">isNative</label><input id="isnative" name="isNative" type="checkbox"/><br>
     <label for="is-parametric">isParametric</label><input id="isparametric" name="isParametric" type="checkbox"/><br>
+    
     <button id="send" onclick="handleSendLayer(event)">Send 2</button>
   </form>
   
@@ -49,6 +67,8 @@
 
 
   </div>
+  </aside>
+</div>
 </div>
 </body>
 
@@ -57,13 +77,13 @@
 
 <script> 
   let history = [];
-  var canvas = document.getElementById("drawable");
+  //var canvas = document.getElementById("drawable");
   
-  var ctx = canvas.getContext("2d");
+  //var ctx = canvas.getContext("2d");
 
 
-  console.log(canvas);
-  console.log(ctx);
+  //console.log(canvas);
+  //console.log(ctx);
 
   let msg_input = document.getElementById("msg-input");
   let model_input = document.getElementById("model-input");
@@ -72,62 +92,94 @@
   var outcome_box = document.getElementById("outcome");
   var draw = document.getElementById("drawable");
   
-  async function handlePyMessageWrite(e){
+  async function handlePyMessageWrite(e)
+  {
     let value_bfr = outcome_box.value;
-
     console.log(e);
+
     const data = JSON.stringify({data: e, route: "pyexec"});
     console.log(data);
+
     const options = {
               method : "POST",
               headers:  {"Content-Type":"application/json"},
               body: data
-        };
+    };
+
+
     const res = await fetch("/api/update", options)
       .then(res => res.json())
       .catch(err => console.error(err));
 
-    console.log(options);
     outcome_box.value = res.msg + "\n" + value_bfr;
 
     h = document.body
     b = document.getElementById("content");
+    
     new_p = document.createElement("p")
     new_p.appendChild(document.createTextNode(res.msg));
-    //appendHtml(document.html, res.msg);
     
     b.appendChild(new_p)
   }
 
   function update_send(e) {
     e.preventDefault();
+
     let text_data = msg_input.value;
-    msg_input.value = "";
     handlePyMessageWrite(text_data);
+
+    msg_input.value = "";
   }
+
+
   form_update.addEventListener("submit", update_send);
   //draw.on_click = handleDrawClick
     
   
-  async function handleSendLayer(e){
+  
+
+  async function handleSendLayer(e)
+  {
       let model_input = document.getElementById("model-input");
-      let value_bfr = outcome_box.value;
+      let value_bufr  = outcome_box.value;
+
       alert (JSON.stringify(e));
+
       const data = JSON.stringify({data:e, route: "model"});
-      if (e.isTrusted == true)
+      
+      if (e.isTrusted)
         return 1;
+
       const options = {
         method : "POST",
         headers: {"Content-Type":"application/json"},
-        body:data};
-      const res = await fetch("/api/model", options).then(res => res.json()).catch(err =>console.error(err));
+        body:data
+
+      };
+
+
+      const res = await fetch("/api/model", options)
+                        .then(res => res.json())
+                        .catch(err =>console.error(err));
 
       outcome_box.value = res.msg + "\n" + value_bfr;
 
   }
-  form_model.addEventListener("submit", e => {
+
+
+  form_model.addEventListener("submit", 
+  e => {
     e.preventDefault();
-    let text_data = {hyperp: JSON.stringify(JSON.parse("{"+model_input.value+"}")), isParametric: true ? isparametric.value == "on" : false, isNative: true? isnative.value == "on": false , mType: mtype.value, Name: Name.value};
+    
+    let text_data = {
+      hyperp: JSON.stringify(JSON.parse("{"+model_input.value+"}")),
+      isParametric: true ? isparametric.value == "on" : false, 
+      isNative:     true ? isnative.value == "on": false ,
+      mType:        mtype.value,
+      Name:         Name.value
+    };
+
+
     model_input.value = "";
     handleSendLayer(text_data);
   });
@@ -136,5 +188,6 @@
       e.preventDefault();
       handleUpdate("show()");
     });*/
+  //drawable.addEventListener("click", genRect);
 </script>
 </html>
