@@ -1,9 +1,13 @@
+import os
+import string
+import sys
+
 import torch
-import torch.nn 
+import torch.nn as nn
 
 from collections import OrderedDict
 
-from IR import ModuleIntermediateRepr
+from IR import ModuleIntermediateRepr 
 
 
 
@@ -49,7 +53,7 @@ class GraphBuild:
   def addToConn(self, mod):
     #global not_done, fwd_str
     self.dConn[mod.name] = {"ins": mod.ins, "outs": mod.outs, "done": False, "repr_fwd": None}
-
+    print(mod)
     if mod.ins:
       for in_name, in_card in mod.ins.items():
         if in_name in self.not_done:
@@ -136,7 +140,7 @@ class conn:
     self.name = name
     self.ins  = ins
     self.outs = outs
-
+    self.dr = {"Name":self.name, "inbound":self.ins, "outbound":self.outs}
   def __repr__(self):
     return str({"name":self.name, "ins": self.ins, "outs": self.outs})
   def __str__(self):

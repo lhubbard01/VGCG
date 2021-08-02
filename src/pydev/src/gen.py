@@ -1,14 +1,21 @@
-from IR import *
-from gen_fwd import *
-#Yes, I know wildcard imports are bad practice, this in dev
+from IR import ModuleIntermediateRepr, OutBound, x, xBound, InBound
+from loggingConf import init_logger, Prepend
+
+logger = init_logger(__file__, count = 1)
+#logger.info = Prepend("PYTHON    [GEN]:")
+
+from gen_fwd import GraphBuild, conn
 
 def buildConnsDict(inbounds):
+
+  print("BUILD CONNS:", inbounds)
   #construct a dictionary that organizes data as gen_fwd expects
   ins = {}
   if not inbounds:
     return None
-  for d in inbounds:
-    ins[d.name] = d.count
+  for el in inbounds:
+    for k, v in el.items():
+      ins[k] = v
   return ins
 
 class ModelCache:
@@ -16,44 +23,95 @@ class ModelCache:
     self.cache = {}
     self.conns = {}
 
-  def recv(self, msg, data_type: str , asdict: bool = False):
+  def recv(self, msg,    asdict: bool = False):
+
     message = msg#Msg(msg).proc()
+
     
 
-    if data_type == "model_cache":
+    data_type, message = msg["signal_type"], msg["pydict"]
+    logger.info("first")
+    
+    print("RECV",type(msg),"\nMESSAGE:", message)
+    if data_type == "add":
       try:
         if not asdict:
           self.cache[message.name]  = message# ModuleIntermediateRepr(**message)
+
         else:
           self.cache[message["Name"]]  = message# ModuleIntermediateRepr(**message)
+        logger.info(self.cache)
+
+
       except KeyError as ke:
         print(message)
 
     elif data_type =="conn":
+      print("RECV: second (conn)")
       if not asdict: 
-          self.conns
+        pass          
       else: 
-          if not message["in"]["Name"] in self.conns.keys():
-            self.conns[message["in"]["Name"]] = {"ins":{}, "outs":{}}
+          print("conn else")
+          if "from" in message.keys():
+            if not message["from"]["Name"] in self.conns.keys():
+              self.conns[message["from"]["Name"]] = {"ins":[], "outs":[]}
+            self.conns[message["from"]["Name"]] ["outs"].append({
+              message["to"]["Name"] : message["to"]["count"]
+            })
 
-          self.conns[message["in"]["Name"]]  ["ins"].append({
-            message["in"]["Name"] : message["in"]["count"]
+          else:
+            if not message["in"]["Name"] in self.conns.keys():
+              self.conns[message["in"]["Name"]] = {"ins":[], "outs":[]}
+
+            self.conns[message["in"]["Name"]]  ["outs"].append({
+              message["in"]["Name"] : message["in"]["count"]
+              })
+
+
+          print("COMPLETED ADD INS")
+          if "from" in message.keys():
+            if not message["to"]["Name"] in self.conns.keys():
+              self.conns[message["to"]["Name"]] = {"ins":[], "outs":[]}
+            self.conns[message["to"]["Name"]] ["ins"].append({
+              message["from"]["Name"] : message["from"]["count"]
             })
 
 
-          if not message["out"]["Name"] in self.conns.keys():
-            self.conns[message["out"]["Name"]] = {"ins":{}, "outs":{}}
+          else:
+            if not message["out"]["Name"] in self.conns.keys():
+              self.conns[message["out"]["Name"]] = {"ins":[], "outs":[]}
 
-          self.conns[message["out"]["Name"]] ["outs"].append({
-            message["out"]["Name"]: message["out"]["count"]
+            self.conns[message["out"]["Name"]] ["outs"].append({
+              message["out"]["Name"]: message["out"]["count"]
             })
+          print("COMPLETED ADD CONN\n")
 
-    elif data_type == "delete":
+    elif data_type == "remove":
       #TODO handle deletion of different modules or connections
       pass
     elif data_type == "signal": 
+      
+      if message["signal"] == "verbose":
+        print("PYTHON [CACHE]:Conn", self.conns, "\nPYTHON [CACHE]: Cache", self.cache)
+      
+      elif message["signal"] == "register":
+        self.builder = GraphBuild(self.cache, indent = 4)
+
+      elif message["signal"] == "build":
+        dict_modules=self.buildConns() 
+        self.builder = GraphBuild(self.cache, indent = 4)
+        dconns = self.builder.buildModuleGraph(dict_modules)
+        print(dconns)
+
+
+
+
+        with open("local.py", "w") as f:
+          model = self.builder.model_str + "\n" + self.builder.fwd_str
+          print(model)
+          f.write(model)
+        
       #TODO handle processing of 1) build signal 2) launch signal
-      pass
     else:
       raise ValueError("unexpected data dictionary!")
 
@@ -63,12 +121,18 @@ class ModelCache:
     others. inbounds and outbounds represent the information flow relative to 
     the module. This information is used by the gen_fwd module"""
     dMod = {}
-    for module, value in self.cache.items():
-      dMod[value.name] = conn(
-                          value.name, 
-                          buildConnsDict(value.inbound), 
-                          buildConnsDict(value.outbound)
-                        )
+
+    for name, value in self.conns.items():
+      
+      print("NAME", name,"\n", self.cache[name], "*"*80)
+      dMod[name] = conn(
+                          name,
+                          buildConnsDict(value["ins"]), 
+                          buildConnsDict(value["outs"]))
+
+      self.cache[name] = {**self.cache[name],  ** dMod[name].dr}
+      self.cache[name] = ModuleIntermediateRepr(**self.cache[name])
+
     print(dMod)
     return dMod
   

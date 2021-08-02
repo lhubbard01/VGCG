@@ -27,13 +27,22 @@ var drawable = drawClick;
 </head>
 <body>
 <nav>
-  <div class="module" id="linear" onclick="selection(this);">linear</div>
-  <div class="module" id="output" onclick="selection(this);">output</div>
-  <div class="module" id="input" onclick="selection(this);">inpuot</div>
-  <div class="module" id="bilinear" onclick ="selection(this);">bilinear</div>
-  <div class="module" id="relu" onclick="selection(this);">relu</div>
-  <div class="module" id="rect" onclick="selection(this);">relu</div>
+  <div class="module" id="verbose" onclick="selection(this);">verbose</div>
+  <div class="module" id="build" onclick="selection(this);">build</div>
+  <div class="module" id="register" onclick="selection(this);">register</div>
+
   <div class="module" id="connect" onclick="selection(this);">connect</div>
+  <div class="module" id="select" onclick="selection(this);">select</div>
+
+  <div class="module" id="input" onclick="selection(this);">input</div>
+  <div class="module" id="output" onclick="selection(this);">output</div>
+  
+  <div class="module" id="linear" onclick="selection(this);">linear</div>
+  <div class="module" id="bilinear" onclick ="selection(this);">bilinear</div>
+  
+  <div class="module" id="relu" onclick="selection(this);">relu</div>
+  <div class="module" id="rect" onclick="selection(this);">rectangle</div>
+
 </nav>
 <div id="content" style="/*display: grid; grid-template-columns: 8fr 3fr; gap: 0px;*/">
   <div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">

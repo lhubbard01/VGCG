@@ -1,6 +1,7 @@
 #Adapted from
 #https://levelup.gitconnected.com/inter-process-communication-between-node-js-and-python-2e9c4fda928d
 import os
+import time
 import json
 import logging
 import select
@@ -9,6 +10,7 @@ import re
 #designators for the interprocess communication via pipes with node server (bidirectional)
 IPC_FIFO_NAME_A = "pipe_a"
 IPC_FIFO_NAME_B = "pipe_b"
+import datetime as dt
 
 
 
@@ -17,19 +19,24 @@ IPC_FIFO_NAME_B = "pipe_b"
 
 
 
-
-
-
-
-
-
-import struct
-#<I
+VERBOSE = False
 IPC_FIFO_MODEL = "model_pipe"
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from loggingConf import CountLogger, init_logger
 
+logger = init_logger(__file__, count = 1)
+def prepend(*args):
+
+
+  PREPEND = time.asctime() + " | PYTHON  [MAIN]:"
+  for arg in args:
+    PREPEND += str(arg)
+  print(PREPEND)
+
+
+logger.info = prepend
+
+"""
 class FifoModel:
   def __init__(self, loc):
     self.loc = loc
@@ -38,8 +45,6 @@ class FifoModel:
     except Exception as e:
       raise e
   
-  def __call__(self, msg):
-    logging.info(type(msg))
     self.write(msg)
 
   def write(self, msg):
@@ -50,6 +55,7 @@ class FifoModel:
         os.write(self.pipe, bytes(msg,"utf-8"))
     else:
       os.write(self.pipe, msg)
+  
 
   def exit(self):
     try:
@@ -57,23 +63,48 @@ class FifoModel:
     except FileNotFoundError as fnfe:
       logger.critical(fnfe)
 
+  """  
+class FifoModel:
+  def __init__(self, PIPE):
+    self.pipe = PIPE
+
+  def __call__(self, msg):
+    self.write(msg)
+
+
+  def write(self, msg : (bytes, str)):
     
+    #logger.info("MESSAGE: ", type(msg), msg, "\nPIPE: ", type(self.pipe))
+    if not isinstance(msg, bytes):
+      if not isinstance(msg,str):
+        os.write(self.pipe, bytes(str(msg), "utf-8"))
+
+      else:
+        os.write(self.pipe, bytes(msg), "utf-8")
+
+    else:
+      logging.info(msg, type(msg), self.pipe, type(self.pipe))
+
+      os.write(self.pipe, msg)
+
+
 def moveToModel(msg):
   global fifo_model
   fifo_model(msg)
 
 exec_history = []
 def log_input(msg, *args):
+  #global logger
   preface_str = ""
   for arg in args:
     preface_str += arg + " "
 
 
-  logging.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
+  logger.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
   return msg
 
 def handle_message_runtime( msg):
-  global exec_history
+  global exec_history #, logger
   try:
     outbound = eval(msg)
     if not outbound:
@@ -117,6 +148,7 @@ def re_match(msg):
 
 
 def process_message(msg):
+  print(msg)
   try:
     msgdict = None
     try: 
@@ -133,7 +165,9 @@ def process_message(msg):
     #print(msgdict)
     out1 = log_input(msgdict, "INBOUND")
     if msgdict["route"] == "model":
+      print("moving to model, message is as ", msg)
       msgstro=moveToModel(msg)#msgdict["data"])
+      print("moved to model")
       logging.info("moved to model")
 
     elif msgdict["route"] == "update":
@@ -143,10 +177,9 @@ def process_message(msg):
     log_input(msg, "OUTBOUND")
 
     return str(msg)
-
-
   except Exception as e:
-    
+    print("getting called at 170") 
+    raise e
     logging.critical(e)
     raise e
     #return str(type(e))+ "\n" + str(e)
@@ -166,21 +199,24 @@ def pend_on_pipe(loc, name, F_flags):
       pass
 
 
+
 class IPC_Handler:
   def __init__(self, loc):
-    global fifo_model
+    global fifo_model, logger
+    if not logger: 
+      logger = init_logger()
     os.mkfifo(IPC_FIFO_NAME_A)
-
-
     try:
       fifo_a = os.open(os.path.join(loc, IPC_FIFO_NAME_A), os.O_RDONLY | os.O_NONBLOCK)
-      logging.info("pipe a is opened")
+      logger.info("pipe a is opened")
+
+
 
       fifo_b     = pend_on_pipe(loc, IPC_FIFO_NAME_B, os.O_WRONLY)
-      logging.info("pipe b is opened")
+      logger.info("pipe b is opened")
 
-      pipe_model = FifoModel(loc)
-      logging.info("model pipe is opened")
+      fifo_model = FifoModel(pend_on_pipe(loc, IPC_FIFO_MODEL, os.O_WRONLY))
+      logger.info("model pipe is opened")
 
 
       """
@@ -200,41 +236,60 @@ class IPC_Handler:
           pass
       #Polling A"""
       try:
-        logging.info("initiating pipe polling")
+        logger.info("initiating pipe polling")
         poll = select.poll()
         poll.register(fifo_a, select.POLLIN)
         try:
           while True:
             if (fifo_a, select.POLLIN) in poll.poll(1000):
-              logging.info("--------received from JS--------")
-              logging.info("    " + msg.decode("utf-8"))
-
               msg      = get_message(fifo_a)
+              logger.info("--------received from JS--------");logger.info("    " + msg.decode("utf-8"))
+
               outbound = process_message(msg)
   
-              logging.info("-------writing------", outbound)
+              logger.info("-------writing------", outbound)
               os.write(fifo_b, bytes(outbound,"utf-8"))
               
+
+        
+
 
         except KeyboardInterrupt:
           pass
 
         finally:
-          logging.info("select poll unregistering pipe a")
-          poll.unregister(fifo_a)
+          logger.info("select poll unregistering pipe a")
+          #handles condition where a launching script calls this instead
+          try:
+            poll.unregister(fifo_a)
+
+          except FileNotFoundError as fnfe :
+            logger.info("cannot unregister selecting of pipe a due to pipe already being freed");
+
+
+
       finally:
         logger.info("os closing fifo a pipe") 
-        os.close(fifo_a)
+        #handles condition where a launching script calls this instead
+        try:
+          os.close(fifo_a)
+        except FileNotFoundError as fnfe :
+          logger.info("cannot close pipe a due to pipe already being freed");
     finally:
-      logger.info("OS removing IPC FIFO PIPES")
-      os.remove(os.path.join(loc, IPC_FIFO_NAME_A))
-      logger.info("removed pipe a")
-      os.remove(os.path.join(loc,IPC_FIFO_NAME_B))
-      logger.info("removed pipe b")
-      fifo_model.exit()
-      logger.info("removed model pipe")
+        
+      #handles condition where a launching script calls this instead
+      try:
+        logger.info("OS removing IPC FIFO PIPES")
+        os.remove(os.path.join(loc, IPC_FIFO_NAME_A))
+        logger.info("removed pipe a")
+        os.remove(os.path.join(loc,IPC_FIFO_NAME_B))
+        logger.info("removed pipe b")
+        #fifo_model.exit()
+        logger.info("removed model pipe")
+      except FileNotFoundError as fnfe :
+        logger.info("did not find a pipe, assuming cleaned from caller.")
 
-  print("exiting runtime")
+    print("exiting runtime")
 
 fifo_model = None
 if __name__ == "__main__":

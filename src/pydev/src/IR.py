@@ -61,19 +61,22 @@ OutBound = NewType("OutBound", xBound)
 x = xBound
 class ModuleIntermediateRepr:
   """Contains information describing a module """
-  def __init__(self, name: str, inbound: List[InBound], outbound: List[OutBound], isNative: bool, isParametric: bool, hypers: dict, mType: str):
+  def __init__(self, Name: str, isNative: bool, isParametric: bool, hyperp: dict, mType: str, inbound : list, outbound: list):
     if not isinstance(isNative, bool):
+      print(isNative)
       raise TypeError
     self.isNative = isNative
     if not isinstance(isParametric, bool):
+      print(isParametric)
       raise TypeError
     self.isParametric = isParametric
-    self.name = name
+    print(Name, mType, hyperp, inbound, outbound)
+    self.name = Name
     self.mType = mType
     # these are mappings of {name:name, count:count}
     self.inbound = inbound
     self.outbound = outbound
-    self.hypers = hypers
+    self.hypers = hyperp
   
 
   def from_msg(self, msg): 

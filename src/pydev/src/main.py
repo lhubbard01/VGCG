@@ -51,7 +51,7 @@ def clean_procs():
 
 def clean_pipes():
   pipes = [maybe_pipe for maybe_pipe in os.listdir(".") if "pipe" in maybe_pipe]
-  logger.info("cleaning up pipes, " , str(pipes))
+  logger.info("cleaning up pipes, " +str(pipes))
   [os.remove(pipe) for pipe in pipes]
   
   logger.info("success cleaning pipes")
