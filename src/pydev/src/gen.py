@@ -1,10 +1,11 @@
-from IR import ModuleIntermediateRepr, OutBound, x, xBound, InBound
+from gen_fwd import GraphBuild, conn
+from IR      import ModuleIntermediateRepr, OutBound, x, xBound, InBound
+
 from loggingConf import init_logger, Prepend
 
 logger = init_logger(__file__, count = 1)
 #logger.info = Prepend("PYTHON    [GEN]:")
 
-from gen_fwd import GraphBuild, conn
 
 def buildConnsDict(inbounds):
 
@@ -25,14 +26,9 @@ class ModelCache:
 
   def recv(self, msg,    asdict: bool = False):
 
-    message = msg#Msg(msg).proc()
-
-    
-
+    message = msg
     data_type, message = msg["signal_type"], msg["pydict"]
-    logger.info("first")
     
-    print("RECV",type(msg),"\nMESSAGE:", message)
     if data_type == "add":
       try:
         if not asdict:
@@ -47,17 +43,15 @@ class ModelCache:
         print(message)
 
     elif data_type =="conn":
-      print("RECV: second (conn)")
       if not asdict: 
         pass          
       else: 
-          print("conn else")
           if "from" in message.keys():
             if not message["from"]["Name"] in self.conns.keys():
               self.conns[message["from"]["Name"]] = {"ins":[], "outs":[]}
             self.conns[message["from"]["Name"]] ["outs"].append({
               message["to"]["Name"] : message["to"]["count"]
-            })
+            })  #if defined through a connection instead of features in and out 
 
           else:
             if not message["in"]["Name"] in self.conns.keys():
@@ -68,7 +62,6 @@ class ModelCache:
               })
 
 
-          print("COMPLETED ADD INS")
           if "from" in message.keys():
             if not message["to"]["Name"] in self.conns.keys():
               self.conns[message["to"]["Name"]] = {"ins":[], "outs":[]}
@@ -84,7 +77,6 @@ class ModelCache:
             self.conns[message["out"]["Name"]] ["outs"].append({
               message["out"]["Name"]: message["out"]["count"]
             })
-          print("COMPLETED ADD CONN\n")
 
     elif data_type == "remove":
       #TODO handle deletion of different modules or connections
@@ -179,10 +171,6 @@ if __name__ == "__main__":
         isParametric = True,
         mType = "Linear"), data_type = "model_cache")
   builder = GraphBuild(cache.cache, indent = 4)
-  
-
-
-
 
   dConns = builder.buildModuleGraph(cache.buildConns())
   print("connection dictionary: ", dConns)
