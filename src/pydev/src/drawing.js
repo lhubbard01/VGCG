@@ -136,6 +136,8 @@ function remove(ev){
 var p1 = null;var p2 = null;
 function connect(ev)
 {
+  
+  //connect module 1 to module click 2. describes a path of information flow and is used to parameterized weight matrices for model backend
   //check if a rectangle is beneath the click. if so, and if clicked previously and rect stored, announce connection to server
   var maybeEl = checkIfRect(ev);
 
@@ -182,9 +184,8 @@ function connect(ev)
 var x = genRect;
 LOG(x);
 
-
-
 class Point{
+  // A maintainer of click states for render later
   constructor(x,y){
     this.x = x;
     this.y = y;
@@ -230,7 +231,9 @@ function input(ev,th){
   return data;
 }
 
-function linear(ev){
+function linear(ev)
+{
+  // Linear Transformation of input, defined through dimenion of feature space between other modules
   var name = "A" + globalN;
   globalN++;
   
@@ -253,7 +256,9 @@ function linear(ev){
 }
 
 
-function Output(ev, th){
+function Output(ev, th)
+{
+  //To handle guarantee on dim of output space, nonlinearity, etc.
   let data = {isParametric: false, isNative: false, Name: "output"};
   console.log("FROM OUTPUT", th);
   genRect(ev, "Output");
@@ -270,7 +275,7 @@ function Output(ev, th){
 
 async function send(data_in, signal_type)
 {
-
+  //handles comm with express and effectively interfaces frontend to backend
   const data = JSON.stringify({
     data: data_in,
     route: "model",
@@ -296,7 +301,8 @@ async function send(data_in, signal_type)
     console.log("completed logging request");
 }
 
-function relu(ev,th){
+function relu(ev){
+  // ReLU Module, sends info to model backend
   let data = {
     isParametric: false,
     isNative: true,
@@ -324,6 +330,7 @@ function createDiv(fields){
 }
 
 function popUpDesc(){
+  //To house selectors corresponding to rectangle attributes
   var newPopup = new Rect(atClick.x, atClick.y, DEFAULT_SIZE, WHITE);
   let maybeModule = search(atClick); //search global table of objects for a module at this location
 
@@ -339,6 +346,7 @@ function popUpDesc(){
 
 
 function verboseSig(ev){
+  // display cache and connections in the model backend
   LOG("VERBOSE");
   let dataIn = {
     signal: "verbose"
@@ -348,6 +356,7 @@ function verboseSig(ev){
 }
 
 function buildSig (ev){
+  //builds forward pass, model definition, and writes to file "local.py"
   LOG("BUILD");
   let dataIn = {
     signal: "build"
@@ -356,7 +365,9 @@ function buildSig (ev){
   send(dataIn, "signal");
 }
 
+
 function registerSig (ev){
+  //used by the ython model state to update cache registration
   LOG("REGISTER");
   let dataIn = {
     signal: "register"
@@ -365,7 +376,11 @@ function registerSig (ev){
   send(dataIn, "signal");
 }
 
-var dragging = null;
+
+
+
+
+var dragging = null; //helper for moving around selected elements
 function select(ev){
   var maybeRect = checkIfRect(ev);
   console.log(ev);
@@ -377,8 +392,14 @@ function select(ev){
   console.log(dragging);
 }
 
-var drawablecbN = "rect";
-var idToCB = {
+var drawablecbN = "rect"; // initial callback
+
+
+
+
+
+// CALLBACK DICTIONARY
+var idToCB = { 
 
   "relu"    : relu,
   "output"  : Output,
@@ -397,10 +418,9 @@ var idToCB = {
 
 
 //setTimeout(300, ()=>{document.getElementsByTagName("NAV").item(0).addEventListener("click", (e));});//(t) => { varidToCB[drawablecbN](t);});});
-
-
 function drawClick(ev)
 {
+  //Implements the drawing to the document from callback, among other things
   LOG("calling " + drawablecbN);
   LOG(new String(ev), drawablecbN);
 
@@ -415,6 +435,7 @@ setTimeout(300, ()=>{document.body.addEventListener("mouseDown", () => { drawabl
 
 function selection(t)
 {
+  //Handles changing of callback through a json mapping from str to function object
   if (verbose > 1)
     LOG("selection", t.id);
   
