@@ -3,8 +3,16 @@ var verbose = 3;
 var globalN = 1;
 var curr = 0;
 var drawablecb = genRect;
-
+var svgCanvas; var SVG;
 //DIRECT DOM RENDER VIA SVG
+
+
+
+
+
+
+
+var lineCount = 0;
 class Line{
   constructor(x1,y1,x2,y2){
     LOG("making line!");
@@ -13,17 +21,17 @@ class Line{
     this.render = this.render.bind(this);
 
   }
-  render(){
-    var svg_render = document.createElement("svg");
+
+  
+ render(){
+    svgCanvas = document.getElementById("drawable_svg");
+    let currentState = svgCanvas.innerHTML
     if (verbose > 0)
       LOG("render line!");
-    svg_render.innerHTML = "<line x1=" + this.pointA.x.toString() + "\" y=\"" + this.pointA.y.toString()
+    svgCanvas.innerHTML = currentState + "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
       + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
-      + "\" stroke=\"black\" />"; 
-
-    svg_render.className="SVG_Conn";
-    svg_render.position = "absolute";
-    document.body.appendChild(svg_render);
+      + "\" stroke=\"black\" class=\"svgline\" id=\"" + lineCount.toString() + "\"/>"; 
+  lineCount++;
   }
 
 
@@ -46,29 +54,11 @@ class Rect{
   
 
   render(){
-    let divrect = document.createElement("div");
-    divrect.className = "moduleDiv";
-    
-    //divrect.jsname = this;
-    
-    divrect.id = this.Name;
-
-
-    divrect.innerHTML=this.title;
-    divrect.style.border= "1px solid black";
-    
-    divrect.style.position = "absolute";
-
-    divrect.style.left   = this.x+"px";
-    divrect.style.top    = this.y+"px";
-
-    divrect.style.width  = this.size+"px";
-    divrect.style.height = this.size+"px";
-
-    divrect.style.zIndex = "-1";
-    divrect.style.background = this.color;
-
-    document.body.appendChild(divrect);
+    SVG = document.getElementById("drawable_svg");
+    let divrect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
+    + "\" height=\"" + this.size.toString() + "\" width=\"100\""
+    + "id=\"" + this.Name + "\" class=\"moduleDiv\" />";
+    SVG.innerHTML = SVG.innerHTML + divrect; 
   }
 }
 
@@ -77,15 +67,21 @@ class Rect{
 
 function genRect(ev, title, Name)
 {
-  var r = new Rect(ev.clientX, ev.clientY, 200, "red", title, Name);
+  //var r = new Rect(ev.clientX, ev.clientY, 100, "red", title, Name);
+  var r = new Rect(ev.offsetX, ev.offsetY, 100, "red", title, Name);
   r.render();
   LOG(r);
   return r;
 }
-
-
-function checkLoc(ev, obj)
+function checkLocDOM(ev, obj){
+  ((ev.clientX > obj.x.baseVal.value) && (ev.clientX <= (obj.x.baseVal.value + obj.width)))
+      && ((ev.clientY > obj.y.baseVal.value ) && (ev.clientY <= (obj.y.baseVal.value + obj.height))) 
+      return true;
+      return false;
+}
+function checkLocHTML(ev, obj)
 {
+  LOG("CHECK LOG: ", ev, obj);
   // used to gater the bounding box of the div, there might be a better way to do htis
   if ((
   ((ev.clientX > obj.offsetLeft) && (ev.clientX <= (obj.offsetLeft + obj.offsetWidth)))
@@ -96,6 +92,7 @@ function checkLoc(ev, obj)
 }
 
 
+
 function checkIfRect(ev)
 {
   //checks for if an element is being clicked on
@@ -104,7 +101,7 @@ function checkIfRect(ev)
 
     let localrect = module_rects.item(i);
 
-    if (checkLoc(ev, localrect)){
+    if (checkLocDOM(ev, localrect)){
       return {found: true, rect: localrect};
     }
 
@@ -148,13 +145,13 @@ function connect(ev)
 
         if (verbose > 1)
           LOG("part 1 conn");
-        p1 = new Point(ev.clientX, ev.clientY);
+        p1 = new Point(ev.offsetX, ev.offsetY); //new Point(ev.clientX, ev.clientY);
         connEl = maybeEl.rect;
       }
       else if (!p2){ 
         if ( verbose > 1) 
           LOG("part 2 conn");
-        p2 = new Point(ev.clientX, ev.clientY);
+        p2 = new Point(ev.offsetX, ev.offsetY);
         let out = new Line(p1.x, p1.y, p2.x, p2.y);
         LOG(out);
         LOG(connEl);
@@ -430,6 +427,7 @@ function drawClick(ev)
 }
 
 setTimeout(300, ()=>{document.body.addEventListener("mouseUp", idToCB[drawableN]);});
+//setTimeout(300, ()=>{SVG = document.getElementById("drawablesvg");});
 setTimeout(300, ()=>{document.body.addEventListener("mouseDown", () => { drawablecbN = "null";})});
 
 
@@ -438,7 +436,7 @@ function selection(t)
   //Handles changing of callback through a json mapping from str to function object
   if (verbose > 1)
     LOG("selection", t.id);
-  
+  selectColorify(t); 
   drawablecbN = new String(t.id);
 
 
@@ -452,14 +450,13 @@ function selection(t)
   //LOG(drawablecbN, idToCB[drawablecbN]);
 }
 
+var buttonid = null;var selected = null;
 async function LOG()
 {
   var data_in = "LOGGING: ";
   for (let i = 0; i < arguments.length; i++)
     data_in += " " + new String(arguments[i]);
 
-  if (verbose>0)
-    console.log("LOGGING: logging", data_in);
 
   const data = JSON.stringify({data: data_in});
   
@@ -478,3 +475,19 @@ async function LOG()
 
 
 
+setTimeout(2000, ()=>{new Line(new Point(0,0), new Point(window.width, window.height)).render();});
+function selectColorify(t)
+{
+  if (buttonid != t.id)
+  {
+    if (verbose >2) 
+      LOG(t.id);LOG(`setting button id ${buttonid} to ${t.id}`);
+    if (selected){
+      selected.style.background = '#EEE';
+    }
+    selected = t;
+    buttonid = t.id ;
+    selected.style.background = 'red';
+    LOG(`Updated button to red.`);
+  }
+}

@@ -3,12 +3,11 @@
 <html>
 <head>
   <title>App 1</title>
-  <style>
-  nav{height: 5%; width:100%;}
-div.module{ height: 20px; width: 20px; background: "yellow"; }
-</style>
+  <link rel="stylesheet" href="./style.css">
 <script type="text/javascript" src="./drawing.js"></script>
+
 <script>
+
 var drawable = drawClick;
   function handleDrawClick(e){
     ctx.moveTo(0,0);
@@ -26,36 +25,45 @@ var drawable = drawClick;
 </script>
 </head>
 <body>
-<nav>
+<main >
+<svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
+</svg>
+<div class="UI">
+  <section id="sidebar" onmousemove="MousePosDebugger(event)">
   <div class="module" id="verbose" onclick="selection(this);">verbose</div>
   <div class="module" id="build" onclick="selection(this);">build</div>
   <div class="module" id="register" onclick="selection(this);">register</div>
+  </br>
 
   <div class="module" id="connect" onclick="selection(this);">connect</div>
   <div class="module" id="select" onclick="selection(this);">select</div>
+  </br>
 
   <div class="module" id="input" onclick="selection(this);">input</div>
   <div class="module" id="output" onclick="selection(this);">output</div>
   
+  </br>
   <div class="module" id="linear" onclick="selection(this);">linear</div>
   <div class="module" id="bilinear" onclick ="selection(this);">bilinear</div>
   
+  </br>
   <div class="module" id="relu" onclick="selection(this);">relu</div>
   <div class="module" id="rect" onclick="selection(this);">rectangle</div>
 
-</nav>
-<div id="content" style="/*display: grid; grid-template-columns: 8fr 3fr; gap: 0px;*/">
-  <div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">
+  <!--<div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">-->
   <!--<div id="drawCont" style=" height: 480px; background: blue" >
   <canvas style="width: 100%; height: 100%" id="drawable" onmousemove="MousePosDebugger(event)">Drawable</canvas>
   </div> -->
-  <aside style="right:float">
   <div id="right-sb" style="background: white;" onmousemove="MousePosDebugger(event)">
     <form id="formupdate" action="/api/update"  method="POST" target="_blank">
       <input id="msg-input" /> 
       <button id="sendbtn" onclick="update_send(event)">Send</button>
     </form>
+  <textarea id="outcome" readonly rows="10" cols="70"></textarea>
 
+  </section>
+  </div> 
+<!--
     <form id="formmodel" action="/api/model"  method="POST" target="_blank" >
       <label for="hyper-param">Hypers:</label><input id="model-input" name="hyperp" /> <br>
       <label    for="inbounds">in features:</label><input id="in-features" name="infeatures" /> <br>
@@ -66,19 +74,14 @@ var drawable = drawClick;
     <label for="is-parametric">isParametric</label><input id="isparametric" name="isParametric" type="checkbox"/><br>
     
     <button id="send" onclick="handleSendLayer(event)">Send 2</button>
-  </form>
+  </form>-->
   
-  <textarea id="outcome" readonly rows="10" cols="70"></textarea>
 
 
 
 
 
-
-  </div>
-  </aside>
-</div>
-</div>
+</main>
 </body>
 
 <p id="writeTo"></p>
@@ -88,6 +91,7 @@ var drawable = drawClick;
   let history = [];
   //var canvas = document.getElementById("drawable");
   
+   //var SVG = document.getElementById("drawablesvg");console.log(`${SVG}`);
   //var ctx = canvas.getContext("2d");
 
 
@@ -146,7 +150,7 @@ var drawable = drawClick;
     
   
   
-
+/*
   async function handleSendLayer(e)
   {
       let model_input = document.getElementById("model-input");
@@ -191,7 +195,7 @@ var drawable = drawClick;
 
     model_input.value = "";
     handleSendLayer(text_data);
-  });
+  });*/
 /*
    showbtn.addEventListener("click", e => {
       e.preventDefault();
