@@ -14,11 +14,14 @@ var svgCanvas; var SVG;
 
 var lineCount = 0;
 class Line{
-  constructor(x1,y1,x2,y2){
+  constructor(x1,y1,x2,y2,name){
     LOG("making line!");
-    this.pointA = new Point(x1,y1);
-    this.pointB = new Point(x2,y2);
+    this.pointA = new Point(x1,y1,name+"A");
+    this.pointB = new Point(x2,y2,name+"B");
     this.render = this.render.bind(this);
+
+
+    this.Name = name;
 
   }
 
@@ -30,7 +33,7 @@ class Line{
       LOG("render line!");
     svgCanvas.innerHTML = currentState + "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
       + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
-      + "\" stroke=\"black\" class=\"svgline\" id=\"" + lineCount.toString() + "\"/>"; 
+      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\"/>"; 
   lineCount++;
   }
 
@@ -100,7 +103,7 @@ function checkIfRect(ev)
   for (let i = 0; i < module_rects.length; ++i){
 
     let localrect = module_rects.item(i);
-
+console.log(localrect);
     if (checkLocDOM(ev, localrect)){
       return {found: true, rect: localrect};
     }
@@ -142,20 +145,22 @@ function connect(ev)
   if (maybeEl.found)
   {
       if (!p1){
-
+        console.log("p1");
+        console.log(ev,maybeEl);
         if (verbose > 1)
           LOG("part 1 conn");
-        p1 = new Point(ev.offsetX, ev.offsetY); //new Point(ev.clientX, ev.clientY);
+        p1 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id); //new Point(ev.clientX, ev.clientY);
         connEl = maybeEl.rect;
       }
       else if (!p2){ 
+        console.log(ev, maybeEl);
         if ( verbose > 1) 
           LOG("part 2 conn");
-        p2 = new Point(ev.offsetX, ev.offsetY);
-        let out = new Line(p1.x, p1.y, p2.x, p2.y);
+        p2 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id);
+        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl.id + maybeEl.rect.id);
         LOG(out);
-        LOG(connEl);
-        LOG(maybeEl);
+        LOG("CONNECT: FIRST: ", connEl);
+        LOG("CONNECT: SECOND" , maybeEl);
         let data = {
           from:{
             Name: connEl.id, 
@@ -181,17 +186,19 @@ function connect(ev)
 var x = genRect;
 LOG(x);
 
+
 class Point{
   // A maintainer of click states for render later
-  constructor(x,y){
+  constructor(x,y,Name){
     this.x = x;
     this.y = y;
+    this.Name = Name;
   }
 };
 
 
-var PointA = new Point(0,0);
-var PointB = new Point(100,100);
+var PointA = new Point(0,0,"PA");
+var PointB = new Point(100,100,"PB");
 var globalSearch = {};
 
 
@@ -231,11 +238,11 @@ function input(ev,th){
 function linear(ev)
 {
   // Linear Transformation of input, defined through dimenion of feature space between other modules
-  var name = "A" + globalN;
+  var name = "A" + globalN.toString();
   globalN++;
-  
   let rect=genRect(ev, "Linear", name);
 
+LOG(name, globalN);
   LOG(rect);
   let data = {isParametric: true,
     isNative: true,
@@ -475,7 +482,7 @@ async function LOG()
 
 
 
-setTimeout(2000, ()=>{new Line(new Point(0,0), new Point(window.width, window.height)).render();});
+setTimeout(2000, ()=>{new Line(new Point(0,0,"00"), new Point(window.width, window.height, "01")).render();});
 function selectColorify(t)
 {
   if (buttonid != t.id)
