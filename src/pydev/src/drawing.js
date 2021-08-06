@@ -78,13 +78,22 @@ function genRect(ev, title, Name)
 }
 
 
-function checkLocDOM(ev, obj){
-if  ((
-  ((ev.offsetX > obj.x.baseVal.value) && (ev.offsetX <= (obj.x.baseVal.value + obj.width)))
-      && ((ev.offsetY > obj.y.baseVal.value ) && (ev.offsetY <= (obj.y.baseVal.value + obj.height)))
-      )){
-      return true;
-      }
+
+function checkLocDOM(ev, obj)
+{
+  if(
+      ((ev.offsetX > obj.x.baseVal.value)
+        && (ev.offsetX <= (obj.x.baseVal.value + obj.width.baseVal.value))
+        )
+      && (
+        (ev.offsetY > obj.y.baseVal.value ) 
+        && (ev.offsetY <= (obj.y.baseVal.value + obj.height.baseVal.value))
+      )
+    )
+    
+    {
+        return true;
+    }
     return false;
 }
 function checkLocHTML(ev, obj)
@@ -99,17 +108,17 @@ function checkLocHTML(ev, obj)
   else return false;
 }
 
-
-
 function checkIfRect(ev)
 {
   //checks for if an element is being clicked on
   module_rects= document.getElementsByClassName("moduleDiv");
-  for (let i = 0; i < module_rects.length; ++i){
-
+  for (let i = 0; i < module_rects.length; ++i)
+  {
     let localrect = module_rects.item(i);
-      console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
-    if (checkLocDOM(ev, localrect)){ console.log("found a match");
+    console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
+    if (checkLocDOM(ev, localrect))
+    {
+      console.log("found a match");
       return {found: true, rect: localrect};
     }
 
