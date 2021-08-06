@@ -76,11 +76,16 @@ function genRect(ev, title, Name)
   LOG(r);
   return r;
 }
+
+
 function checkLocDOM(ev, obj){
-  ((ev.clientX > obj.x.baseVal.value) && (ev.clientX <= (obj.x.baseVal.value + obj.width)))
-      && ((ev.clientY > obj.y.baseVal.value ) && (ev.clientY <= (obj.y.baseVal.value + obj.height))) 
+if  ((
+  ((ev.offsetX > obj.x.baseVal.value) && (ev.offsetX <= (obj.x.baseVal.value + obj.width)))
+      && ((ev.offsetY > obj.y.baseVal.value ) && (ev.offsetY <= (obj.y.baseVal.value + obj.height)))
+      )){
       return true;
-      return false;
+      }
+    return false;
 }
 function checkLocHTML(ev, obj)
 {
@@ -103,8 +108,8 @@ function checkIfRect(ev)
   for (let i = 0; i < module_rects.length; ++i){
 
     let localrect = module_rects.item(i);
-console.log(localrect);
-    if (checkLocDOM(ev, localrect)){
+      console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
+    if (checkLocDOM(ev, localrect)){ console.log("found a match");
       return {found: true, rect: localrect};
     }
 
