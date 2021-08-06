@@ -58,10 +58,11 @@ class Rect{
 
   render(){
     SVG = document.getElementById("drawable_svg");
+    let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
     let divrect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
     + "\" height=\"" + this.size.toString() + "\" width=\"100\""
-    + "id=\"" + this.Name + "\" class=\"moduleDiv\" />";
-    SVG.innerHTML = SVG.innerHTML + divrect; 
+    + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"red\"/>";
+    SVG.innerHTML = SVG.innerHTML + textrect + "\n"+  divrect; 
   }
 }
 

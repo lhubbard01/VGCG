@@ -1,0 +1,48 @@
+main{
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+};
+.moduleDiv{
+background: red;
+};
+.moduleDiv:hover{
+  background: #000;
+}
+
+
+.module{
+  margin: 2px;
+  border: 1px;
+
+  height: 15px;
+  
+  background: #EEE;
+}
+
+#sidebar{
+  float: right;
+display: grid;
+
+
+grid-template-rows: 1fr;
+}
+
+
+
+
+
+
+.module:hover{
+background: #111;
+color: #EEE;
+
+}
+
+
+
+.svgline{
+  stroke-width: 10;
+}
+#drawable_svg{
+  height: 100%; width: 100%; 
+};
