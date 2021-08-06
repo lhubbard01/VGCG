@@ -89,6 +89,12 @@ class ModelCache:
       elif message["signal"] == "register":
         self.builder = GraphBuild(self.cache, indent = 4)
 
+      
+      elif message["signal"] == "reset": 
+        self.cache = {}
+        self.conns = {}
+        print(self.__dict__)
+        print("reset successfully executed")
       elif message["signal"] == "build":
         dict_modules=self.buildConns() 
         self.builder = GraphBuild(self.cache, indent = 4)
