@@ -140,6 +140,11 @@ class ModelCache:
 
 
 
+
+
+  def run(self):
+    subprocess.call("",shell = True)
+
 if __name__ == "__main__":
   #test ## construct densenet (as only a composition of linear transformations) 
   # this demonstrates the mvp 
