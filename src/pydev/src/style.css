@@ -1,0 +1,13 @@
+main {
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+}
+.actionCB { 
+  background: red;
+  }
+
+
+.actionCB:hover { 
+  background: white; 
+}
+
