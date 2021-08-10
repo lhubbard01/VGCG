@@ -218,6 +218,7 @@ def pend_on_pipe(loc, name, F_flags):
 class IPC_Handler:
   def __init__(self, loc):
     global fifo_model, logger
+    input()
     if not logger: 
       logger = init_logger()
     os.mkfifo(IPC_FIFO_NAME_A)
