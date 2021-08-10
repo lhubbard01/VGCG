@@ -42,36 +42,18 @@ fifo_b.on("exit", function (status) {
   const fd   = fs.openSync(IPC_PATH_B, 'r+');
       let fifoRs = fs.createReadStream(null, { fd });
       let fifoWs = fs.createWriteStream(IPC_PATH_A);
-     /*
-        setInterval(() => {
-        console.log('-----   Send packet   -----');
-        fifoWs.write(`${new Date().toISOString()}`);
-    }, 1000);  // Write data at 1 second interval*/
-  
 
   app.post("/api/update", bodyParser.json(), (req, res) => { //when req hits api endpoint update, log data packet and write to pipe
     
-
     console.log("NODE [UPDATE]: ----Send data packet Update----");
 
     if (JSON.stringify(req.body.data).length != 2){
-    console.log(`NODE [UPDATE]: SENDING REQUEST ${JSON.stringify(req.body)}`);
+        console.log(`NODE [UPDATE]: SENDING REQUEST ${JSON.stringify(req.body)}`);
     //console.log(req);
         //fifoWs.write(`${new Date().toISOString()}`);
-        fifoWs.write(`${req.body}`);
+        fifoWs.write(`${JSON.stringify(req.body)}`);
         setTimeout(() => { console.log("waited")}, 200);
-            /*console.log('----- Received packet -----');
-            console.log(data.toString());
-            console.log(data);
-            console.log("running");
-            return data;
-          })*/
        fifoRs.once('data', data => { // only read this once upon post
-        //sent_time = new Date(data.toString());
-        console.log('NODE [UPDATE]: ----- Received packet -----');
-        console.log(data.toString());
-        console.log('    Date   : ' + data.toString());
-        console.log('    Latency: ' + latency.toString() + ' ms');
         res.status(201).json({msg: data.toString()});
         console.log("NODE [UPDATE]: ending transaction")
         }           

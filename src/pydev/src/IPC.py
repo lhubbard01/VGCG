@@ -1,7 +1,6 @@
-#Adapted from
-#https://levelup.gitconnected.com/inter-process-communication-between-node-js-and-python-2e9c4fda928d
 import os
 import time
+from IPython import embed
 import json
 import logging
 import select
@@ -94,35 +93,45 @@ def moveToModel(msg):
 
 exec_history = []
 def log_input(msg, *args):
+  print(msg, args)
   #global logger
   preface_str = ""
+  
+
   for arg in args:
-    preface_str += arg + " "
+    preface_str += str(arg) + " "
 
 
   logger.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
   return msg
 
-def handle_message_runtime( msg):
+def handle_message_runtime( msg_dict):
+  print("hmr")
+  msg = msg_dict["data"]
+  outbound = None
   global exec_history #, logger
   try:
     outbound = eval(msg)
+    print("try eval succeeded")
+    print(outbound, "outbound eval")
     if not outbound:
       outbound = True
-  except SyntaxError as se:
+  except Exception as se:
+    
+    embed()
     try:
       exec(msg, locals(), globals())
       if "plt" in msg:
-
-
         outbound = plt.__dir__()
       else:
+        print("try succeeded")
         outbound = True
     except SyntaxError as sse:
       logging.critical(sse)
       raise sse
 
   exec_history.append(msg)
+  print("exitting handle message runtime, outbound is ", outbound)
   return outbound
 
 
@@ -155,6 +164,9 @@ def process_message(msg):
       msgdict = json.loads(msg)
 
       logging.debug(msgdict)
+      print("this is the message dict", msgdict    ,"\nthis is the original message", msg)
+
+
     except Exception as e:
       raise e
     msgstr = bytes_to_str(msg)
@@ -166,17 +178,20 @@ def process_message(msg):
     out1 = log_input(msgdict, "INBOUND")
     if msgdict["route"] == "model":
       print("moving to model, message is as ", msg)
-      msgstro=moveToModel(msg)#msgdict["data"])
+      out1 = moveToModel(msg)#msgdict["data"])
       print("moved to model")
       logging.info("moved to model")
 
-    elif msgdict["route"] == "update":
-      msg = handle_message_runtime(msg) 
-      logging.info("handle interpreter state update") 
+    elif msgdict["route"] == "pyexec":
+      print("message rout is pyexec")
+      out1  = handle_message_runtime(msgstr)
+      logging.info("handle interpreter state pyexec") 
 
-    log_input(msg, "OUTBOUND")
+    log_input(out1, "OUTBOUND")
+   
+    return str(out1)
 
-    return str(msg)
+
   except Exception as e:
     print("getting called at 170") 
     raise e
