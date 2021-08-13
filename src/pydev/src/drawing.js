@@ -61,7 +61,7 @@ class Rect{
     let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
     let divrect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
     + "\" height=\"" + this.size.toString() + "\" width=\"100\""
-    + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"red\"/>";
+    + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"" + this.color + "\"/>";
     SVG.innerHTML = SVG.innerHTML + textrect + "\n"+  divrect; 
   }
 }
@@ -69,10 +69,10 @@ class Rect{
 
 
 
-function genRect(ev, title, Name)
+function genRect(ev, title, Name, color)
 {
   //var r = new Rect(ev.clientX, ev.clientY, 100, "red", title, Name);
-  var r = new Rect(ev.offsetX, ev.offsetY, 100, "red", title, Name);
+  var r = new Rect(ev.offsetX, ev.offsetY, 100, color, title, Name);
   r.render();
   LOG(r);
   return r;
@@ -255,7 +255,7 @@ function linear(ev)
   // Linear Transformation of input, defined through dimenion of feature space between other modules
   var name = "A" + globalN.toString();
   globalN++;
-  let rect=genRect(ev, "Linear", name);
+  let rect=genRect(ev, "Linear", name, "red");
 
 LOG(name, globalN);
   LOG(rect);
@@ -322,11 +322,17 @@ async function send(data_in, signal_type)
 
 function relu(ev){
   // ReLU Module, sends info to model backend
+  var name = "R" + globalN.toString();
+  globalN++;
+  let rect = genRect(ev, "ReLU", name, "blue");
+
   let data = {
     isParametric: false,
     isNative: true,
     mType:"ReLU",
-    name: "relu1"
+    
+    Name: rect.Name,
+    hyperp: JSON.stringify({})
   };
   if (verbose>0)
     LOG("sending relu", JSON.stringify(data));
