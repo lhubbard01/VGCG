@@ -244,7 +244,7 @@ class IPC_Handler:
             if (fifo_a, select.POLLIN) in poll.poll(1000):
               msg      = get_message(fifo_a)
               logger.info("--------received from JS--------");logger.info("    " + msg.decode("utf-8"))
-
+              logger.info("\n\n\n\n");
               outbound = process_message(msg)
   
               logger.info("-------writing------", outbound)

@@ -19,9 +19,14 @@ class GraphBuild:
     self.symtable = {}
     
     self.indent = indent
-    self.model_str = (model_str if model_str else "")
+    self.model_str = (model_str if model_str else
+      "class LocalModel(nn.Module):\n" 
+      + indent * 1 * " " + "def __init__(self):\n" 
+      + indent * 2 * " " + "super(LocalModel, self).__init__()\n"
+    )
     # repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
     self.fwd_str   = (fwd_str if fwd_str else indent * 1 * " " + "def forward(self, X):\n" )
+    print("SELF FORWARD STRING", self.fwd_str)
     self.reprs = reprs
   
     self.dConn = {}
@@ -117,7 +122,12 @@ class GraphBuild:
       else: 
         break
   
-  
+
+
+
+
+    outvar = list(filter(lambda x: x != "", self.fwd_str.split("\n")[-2].split(" ")))[0] # get last line of fwd, get first non whitespace nonempty substr
+    self.fwd_str += self.indent * 2 * " " + "return " + outvar + "\n"
     return self.dConn
 
 

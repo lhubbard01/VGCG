@@ -62,6 +62,7 @@ class ModelCache:
               })
 
 
+          print("PYTHON [CACHE]:from", self.conns, "\nPYTHON [CACHE]: message ", message)
           if "from" in message.keys():
             if not message["to"]["Name"] in self.conns.keys():
               self.conns[message["to"]["Name"]] = {"ins":[], "outs":[]}
@@ -77,7 +78,6 @@ class ModelCache:
             self.conns[message["out"]["Name"]] ["outs"].append({
               message["out"]["Name"]: message["out"]["count"]
             })
-
     elif data_type == "remove":
       #TODO handle deletion of different modules or connections
       pass
