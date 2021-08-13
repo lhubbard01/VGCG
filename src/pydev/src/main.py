@@ -68,7 +68,7 @@ logging.info("launching IPC Python Main...")
 PATH_IPC = "./IPC.py"
 r_append( launch("python3 " + PATH_IPC))
 logging.info("success on Python Main Launch!")
-
+input("let A create named")
 logging.info("launching IPC node...")
 PATH_NODE = "./jsipc.js"
 r_append( launch("node " + PATH_NODE))
