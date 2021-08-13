@@ -5,7 +5,7 @@ var curr = 0;
 var drawablecb = genRect;
 var svgCanvas; var SVG;
 //DIRECT DOM RENDER VIA SVG
-
+function Xr(event){ alert("connection clicked!");}
 
 
 
@@ -26,14 +26,17 @@ class Line{
   }
 
   
- render(){
+ 
+
+ render(callback, type){
     svgCanvas = document.getElementById("drawable_svg");
     let currentState = svgCanvas.innerHTML
     if (verbose > 0)
       LOG("render line!");
     svgCanvas.innerHTML = currentState + "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
       + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
-      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\"/>"; 
+      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\" "
+      + callback + "=\"" + type + "(event)\">";
   lineCount++;
   }
 
@@ -190,7 +193,7 @@ function connect(ev)
 
         LOG(JSON.stringify(data));
         LOG("sending!");
-        out.render();
+        out.render("onauxclick", "Xr");
         send(data, "conn");
         connEl = null; p1 = null; p2 = null; maybeEl = null;
       }

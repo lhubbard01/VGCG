@@ -23,8 +23,17 @@ var drawable = drawClick;
     +"<p>layerX: "+e.layerX+" layerY: " + e.layerY + "</p>";
   }
 var popup;
+
+
+
 var popupExists = false;
-function globalStateCheck(e){ if (popupExists){ popup.remove(); popupExists = false; } } // perform global state check during event (eg click)
+function globalStateCheck(e){
+  if (popupExists){ 
+    popup.remove(); 
+    popupExists = false;
+  }
+} // perform global state check during event (eg click)
+
 function menu_create(e){
   
   if (popupExists){
