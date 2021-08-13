@@ -27,6 +27,26 @@ display: grid;
 grid-template-rows: 1fr;
 }
 
+.popup{
+  opacity: 1.0;
+  background: #303030;
+  color: #FFF;
+  padding: 5px;
+}
+.popup-row{
+  opacity: 0.3;
+  margin: 0px;
+  padding: 0px;
+  color:#FFF;
+}
+
+.popup-row:hover{
+  margin: 0px;
+  padding: 0px;
+  opacity: 1.0;
+  background: #E0E0E0;
+  color: #000000;
+};
 
 
 
@@ -46,3 +66,4 @@ color: #EEE;
 #drawable_svg{
   height: 100%; width: 100%; 
 };
+
