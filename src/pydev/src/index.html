@@ -22,11 +22,31 @@ var drawable = drawClick;
     +"<p>Movement X: "+e.movementX+ " movementY: "+e.movementY+"</p>"
     +"<p>layerX: "+e.layerX+" layerY: " + e.layerY + "</p>";
   }
+  
+
+
+
+
+  
+
+  function alerter(e){
+    console.log(e);
+    if (e.ctrlKey == true){
+      console.log(e);
+      alert("auxclick was called");
+      console.log("done");
+    }
+  };
+function preventer (e){
+  e.preventDefault();
+}
+
+  
 </script>
 </head>
-<body>
+<body onauxclick="alerter(event)" oncontextmenu="preventer(event)">
 <main >
-<svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
+<svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)" onauxclick="alerter(event)">
 </svg>
 <div class="UI">
   <section id="sidebar" onmousemove="MousePosDebugger(event)">

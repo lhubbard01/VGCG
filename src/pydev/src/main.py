@@ -57,9 +57,9 @@ def clean_pipes():
   logger.info("success cleaning pipes")
 logger = init_logger()
 logger.info("registering all atexit calls")
-atexit.register(clean_procs)  
-atexit.register(clean_pipes)
-atexit.register(lambda : sp.call("pkill node", shell = True))
+#atexit.register(clean_procs)  
+#atexit.register(clean_pipes)
+#atexit.register(lambda : sp.call("pkill node", shell = True))
 
 logger.info("successful registration of exit calls")
 
