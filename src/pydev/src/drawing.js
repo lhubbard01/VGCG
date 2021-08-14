@@ -2,10 +2,11 @@
 var verbose = 3;
 var globalN = 1;
 var curr = 0;
-var drawablecb = genRect;
+var drawablecb = linear;
 var svgCanvas; var SVG;
 //DIRECT DOM RENDER VIA SVG
-function Xr(event){ alert("connection clicked!");}
+function Xr(event, owner){console.log("before menu make"); let x = new Menu(event, owner); console.log(owner); }
+
 
 
 
@@ -60,10 +61,9 @@ class Line extends SVG_HTML{
     this.Name = name;
     this.originalA = n1;
     this.originalB = n2;
+    this.attrs = {Name: this.Name, originalA: this.originalA,originaB: this.originalB, pointA: this.pointA, pointB: this.pointB};
   }
   
-  
- 
 
  render(callback, type){
     svgCanvas = document.getElementById("drawable_svg");
@@ -72,11 +72,15 @@ class Line extends SVG_HTML{
       LOG("render line!");
     let newLine = "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
       + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
-      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\" "
-      + callback + "=\"" + type + "(event)\">";
+      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\" >";
+      //+ callback + "=\"" + type + "(event,  " + JSON.stringify(this.attrs) + ")\">";
 
+    
+    console.log(newLine);
     appendHTMLState(svgCanvas, newLine);
-
+    let localline = document.getElementById(this.Name);
+    localline.addEventListener("auxclick", (event) => { Xr( event, this); });
+    this.html = localline;
   lineCount++;
   }
 
@@ -85,8 +89,11 @@ class Line extends SVG_HTML{
 
 
 //CONTAINER CLASS FOR DIRECT DOM RENDER // holds state for the modules locally
-class Rect{
+
+
+class Rect extends SVG_HTML{
   constructor(x,y,size,color, title, Name){
+    super(Name);
     this.x = x;
     this.y = y;
     this.size = size;
@@ -215,7 +222,7 @@ function connect(ev)
         if ( verbose > 1) 
           LOG("part 2 conn");
         p2 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id);
-        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl.id, maybeEl.rect.id, connEl.id + maybeEl.rect.id);
+        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl, maybeEl.rect, connEl.id + maybeEl.rect.id);
         LOG(out);
         LOG("CONNECT: FIRST: ", connEl);
         LOG("CONNECT: SECOND" , maybeEl);
@@ -561,4 +568,76 @@ function selectColorify(t)
     selected.style.background = 'red';
     LOG(`Updated button to red.`);
   }
+}
+function rowGen(obj, attrs, className){
+  for (let el in attrs)
+    appendHTMLState(obj, "<p class=\"" + className + "\" id=\"" + el + "\">" + el + ":" + attrs[el] + "</p>");
+
+
+  
+
+  console.log(obj.innerHTML);
+  return obj;
+}
+
+
+
+
+
+
+
+
+class Row
+{
+  constructor(name, callback)
+  {
+    this.Name = name;
+    this.cb = callback;
+  }
+}
+
+class ObjDesc{
+  constructor(rows, obj)
+  {
+    this.rows = rows;
+    this.obj = obj;
+  }
+}
+
+
+class Menu
+{
+  constructor(e, owner)
+  { console.log("creating menu object");
+    console.log(e, owner);
+    this.render = this.render.bind(this);
+    this.obj = owner;
+    if (popupExists){
+      popup.remove();
+    }
+    this.render(e);
+  }
+  
+
+
+
+  render(e){
+    let localdiv = document.createElement("div");
+    localdiv.className = "popup";  this.html = "";
+    console.log("BEFORE", localdiv);
+    rowGen(localdiv, this.obj.attrs, "popup-row");
+    console.log("AFTER", localdiv);
+    //localdiv.innerHTML  
+  //localdiv.innerHTML = "<p id=\"del\" class=\"popup-row\">this is del</p><p id=\"rename\" class=\"popup-row\">this is rename</p><p id=\"closeB\" class=\"popup-row\">end</p>";
+    localdiv.style.position = "absolute";
+    localdiv.style.left = e.clientX + "px";
+    localdiv.style.top = e.clientY + "px";
+    this.html = localdiv;
+    document.body.appendChild(localdiv);
+  
+  popup = localdiv;
+  popupExists = true;
+  }
+
+
 }
