@@ -58,7 +58,6 @@ function setColor(objId, color){
 }
 
 function getInput(promptstr){
-  alert("prompting");
   let new_in = prompt(promptstr);
   return new_in;
 }
@@ -83,6 +82,7 @@ class Line extends SVG_HTML{
       setA_in: () => { 
         let newIns = getInput("new input count for " + this.originalA.Name + " : "); 
         this.originalA.ins = newIns;
+        console.log(this);
         this.update("A", newIns);}
     }
     this.init = this.init.bind(this);
@@ -92,34 +92,37 @@ class Line extends SVG_HTML{
   
 
    init(){
+     console.log(this);
         let data = {
           from:{
-            Name: this.originalA.id, 
+            Name: this.originalA.Name,
             count: this.originalA.outs
           }, 
           to:{
-            Name: this.originalB.id,
+            Name: this.originalB.Name,
             count: this.originalB.ins
           }
         };
 
 
       send(data, "conn");
+     console.log(this);
   }
   
   remove(){
     let data = { 
       from: { 
-        Name: this.originalA.id,
+        Name: this.originalA.Name,
         count: this.originalA.outs
       },
       to: {
-        Name: this.originalB.id,
+        Name: this.originalB.Name,
         count: this.originalB.ins
       }
     };
     console.log("removing, ", data);
-    send(data, "remove-conn");
+    send(data, "conn-remove");
+     console.log(this);
   }
   
   update(AorB, update){

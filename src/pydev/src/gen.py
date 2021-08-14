@@ -41,11 +41,21 @@ class ModelCache:
 
       except KeyError as ke:
         print(message)
+    
+    elif data_type =="conn-remove":
+      print(self.conns)
+      self.conns[message["from"]["Name"]] ["outs"] = [
+        el for el in self.conns[message["from"]["Name"]] ["outs"] if not message["to"]["Name"] in el.keys()]
+
+      self.conns[message["to"]["Name"]] ["ins"]    = [
+        el for el in self.conns[message["to"]["Name"]]   ["ins"] if not message["from"]["Name"] in el.keys()]
+
 
     elif data_type =="conn":
       if not asdict: 
         pass          
       else: 
+          print("PYTHON [CACHE]:from", self.conns, "\nPYTHON [CACHE]: message ", message)
           if "from" in message.keys():
             if not message["from"]["Name"] in self.conns.keys():
               self.conns[message["from"]["Name"]] = {"ins":[], "outs":[]}
@@ -58,16 +68,15 @@ class ModelCache:
               self.conns[message["in"]["Name"]] = {"ins":[], "outs":[]}
 
             self.conns[message["in"]["Name"]]  ["outs"].append({
-              message["in"]["Name"] : message["in"]["count"]
+              message["in"]["Name"] : message["in"]["count"],
               })
 
 
-          print("PYTHON [CACHE]:from", self.conns, "\nPYTHON [CACHE]: message ", message)
-          if "from" in message.keys():
+          if "to" in message.keys():
             if not message["to"]["Name"] in self.conns.keys():
               self.conns[message["to"]["Name"]] = {"ins":[], "outs":[]}
             self.conns[message["to"]["Name"]] ["ins"].append({
-              message["from"]["Name"] : message["from"]["count"]
+              message["from"]["Name"] : message["from"]["count"],
             })
 
 
@@ -76,8 +85,9 @@ class ModelCache:
               self.conns[message["out"]["Name"]] = {"ins":[], "outs":[]}
 
             self.conns[message["out"]["Name"]] ["outs"].append({
-              message["out"]["Name"]: message["out"]["count"]
+              message["out"]["Name"]: message["out"]["count"],
             })
+      print("PYTHON [CACHE]:from", self.conns, "\nPYTHON [CACHE]: message ", message)
     elif data_type == "remove":
       #TODO handle deletion of different modules or connections
       pass
