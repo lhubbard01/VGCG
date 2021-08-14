@@ -13,18 +13,55 @@ function Xr(event){ alert("connection clicked!");}
 
 
 var lineCount = 0;
-class Line{
-  constructor(x1,y1,x2,y2,name){
+
+
+
+
+
+
+
+
+
+
+class SVG_HTML{
+  constructor(Name, cb_list){
+
+    this.Name = Name
+    this.cb_list = cb_list
+    this.appendEvent = this.appendEvent.bind(this);
+  }
+
+  appendEvent(ev, cb){
+    this.cb_list += ev; // of form str(ev), str(cb) // added raw to html
+  }
+}
+
+function setEvHdlr(eventHook, callback){
+  return eventHook + "=\"" + callback + "(event)\"";
+}
+function setId(id_in){
+  return " id=\"" + id_in + "\"";
+}
+function setClass(classIn){
+  return " class=\"" + classIn + "\"";
+}
+function appendHTMLState(obj, newstr){
+  obj.innerHTML = obj.innerHTML + newstr;
+}
+
+class Line extends SVG_HTML{
+  constructor(x1,y1,x2,y2,n1,n2,name){
+    super(name);
     LOG("making line!");
     this.pointA = new Point(x1,y1,name+"A");
     this.pointB = new Point(x2,y2,name+"B");
     this.render = this.render.bind(this);
-
-
+    
     this.Name = name;
-
+    this.originalA = n1;
+    this.originalB = n2;
   }
-
+  
   
  
 
@@ -33,10 +70,13 @@ class Line{
     let currentState = svgCanvas.innerHTML
     if (verbose > 0)
       LOG("render line!");
-    svgCanvas.innerHTML = currentState + "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
+    let newLine = "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
       + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
       + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\" "
       + callback + "=\"" + type + "(event)\">";
+
+    appendHTMLState(svgCanvas, newLine);
+
   lineCount++;
   }
 
@@ -175,7 +215,7 @@ function connect(ev)
         if ( verbose > 1) 
           LOG("part 2 conn");
         p2 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id);
-        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl.id + maybeEl.rect.id);
+        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl.id, maybeEl.rect.id, connEl.id + maybeEl.rect.id);
         LOG(out);
         LOG("CONNECT: FIRST: ", connEl);
         LOG("CONNECT: SECOND" , maybeEl);
