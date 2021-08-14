@@ -34,9 +34,9 @@ function globalStateCheck(e){
   }
 } // perform global state check during event (eg click)
 
-function menu_create(e){
+/*function menu_create(e){
   
-  if (popupExists){
+  let menu = new Menu(e, null); /* if (popupExists
     popup.remove();
   }
   let localdiv = document.createElement("div");
@@ -50,23 +50,17 @@ function menu_create(e){
   
   popup = localdiv;
   popupExists = true;
+*/
 
 
 
-}
-
-  function alerter(e){
-    console.log(e);
+function alerter(e){
     if (e.ctrlKey == true){
       console.log(e);
-      alert("auxclick was called");
       console.log("done");
     }
-
-
-
-    menu_create(e);
-  };
+    console.log(e);
+};
 function preventer (e){
   e.preventDefault();
 }
