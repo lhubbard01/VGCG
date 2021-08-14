@@ -1,4 +1,6 @@
 //GEOMETRIC PRIMITIVES
+var ID_LOOKUP = {};
+
 var verbose = 3;
 var globalN = 1;
 var curr = 0;
@@ -49,6 +51,19 @@ function setClass(classIn){
 function appendHTMLState(obj, newstr){
   obj.innerHTML = obj.innerHTML + newstr;
 }
+function setColor(objId, color){
+  let obj = document.getElementById(objId);
+  console.log(obj);
+  obj.style.fill = color;
+}
+
+function getInput(promptstr){
+  alert("prompting");
+  let new_in = prompt(promptstr);
+  return new_in;
+}
+  
+
 
 class Line extends SVG_HTML{
   constructor(x1,y1,x2,y2,n1,n2,name){
@@ -57,15 +72,62 @@ class Line extends SVG_HTML{
     this.pointA = new Point(x1,y1,name+"A");
     this.pointB = new Point(x2,y2,name+"B");
     this.render = this.render.bind(this);
-    
     this.Name = name;
     this.originalA = n1;
     this.originalB = n2;
-    this.attrs = {Name: this.Name, originalA: this.originalA,originaB: this.originalB, pointA: this.pointA, pointB: this.pointB};
+    this.attrs = {
+      pointA_setcolor: () => {
+        setColor(this.originalA.Name, "green");}, 
+      pointB_setcolor: () => {
+        setColor(this.originalB.Name, "green");},
+      setA_in: () => { 
+        let newIns = getInput("new input count for " + this.originalA.Name + " : "); 
+        this.originalA.ins = newIns;
+        this.update("A", newIns);}
+    }
+    this.init = this.init.bind(this);
+    this.update = this.update.bind(this);
+    this.remove= this.remove.bind(this);
   }
   
 
- render(callback, type){
+   init(){
+        let data = {
+          from:{
+            Name: this.originalA.id, 
+            count: this.originalA.outs
+          }, 
+          to:{
+            Name: this.originalB.id,
+            count: this.originalB.ins
+          }
+        };
+
+
+      send(data, "conn");
+  }
+  
+  remove(){
+    let data = { 
+      from: { 
+        Name: this.originalA.id,
+        count: this.originalA.outs
+      },
+      to: {
+        Name: this.originalB.id,
+        count: this.originalB.ins
+      }
+    };
+    console.log("removing, ", data);
+    send(data, "remove-conn");
+  }
+  
+  update(AorB, update){
+    this.remove(); 
+    this.init();
+  }
+
+  render(callback, type){
     svgCanvas = document.getElementById("drawable_svg");
     let currentState = svgCanvas.innerHTML
     if (verbose > 0)
@@ -87,10 +149,7 @@ class Line extends SVG_HTML{
 
 };
 
-
 //CONTAINER CLASS FOR DIRECT DOM RENDER // holds state for the modules locally
-
-
 class Rect extends SVG_HTML{
   constructor(x,y,size,color, title, Name){
     super(Name);
@@ -100,19 +159,17 @@ class Rect extends SVG_HTML{
     this.color = color;
     this.title = title;
     this.Name  = Name;
-  
     this.render = this.render.bind(this);
-
   }
-  
-
-  render(){
-    SVG = document.getElementById("drawable_svg");
-    let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
-    let divrect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
+  render(ptr){
+    svgCanvas = document.getElementById("drawable_svg");
+    let newRect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
     + "\" height=\"" + this.size.toString() + "\" width=\"100\""
     + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"" + this.color + "\"/>";
-    SVG.innerHTML = SVG.innerHTML + textrect + "\n"+  divrect; 
+    let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
+    appendHTMLState(svgCanvas, textrect + "\n" + newRect );
+    this.html = newRect;
+    ID_LOOKUP[this.Name] = ptr;
   }
 }
 
@@ -222,28 +279,14 @@ function connect(ev)
         if ( verbose > 1) 
           LOG("part 2 conn");
         p2 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id);
-        let out = new Line(p1.x, p1.y, p2.x, p2.y, connEl, maybeEl.rect, connEl.id + maybeEl.rect.id);
-        LOG(out);
-        LOG("CONNECT: FIRST: ", connEl);
-        LOG("CONNECT: SECOND" , maybeEl);
-        let data = {
-          from:{
-            Name: connEl.id, 
-            count: 50
-          }, 
-          to:{
-            Name: maybeEl.rect.id,
-            count: 50
-          }
-        };
-
-
-        LOG(JSON.stringify(data));
-        LOG("sending!");
+        let out = new Line(p1.x, p1.y, p2.x, p2.y, ID_LOOKUP[connEl.id], ID_LOOKUP[maybeEl.rect.id], connEl.id + maybeEl.rect.id);
+        out.init();
         out.render("onauxclick", "Xr");
-        send(data, "conn");
         connEl = null; p1 = null; p2 = null; maybeEl = null;
+
       }
+
+  
 
   }
 
@@ -300,10 +343,69 @@ function input(ev,th){
   return data;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Linear extends Rect{
+  constructor(ev){ 
+    let Name = "A" + globalN.toString();
+    super(ev.offsetX, ev.offsetY, 100, "red", "Linear", Name);   
+    this.Name = Name;
+    globalN++;
+    this.render(this);
+    this.isParametric = true;
+    this.isNative = true;
+    this.mType = "Linear";
+    this.ins = 100;
+    this.outs = 50;
+    this.sender = this.sender.bind(this);
+    this.sender();
+  }
+  
+  sender(){
+    let data = {isParametric: this.isParametric,
+    isNative: this.isNative,
+    mType: this.mType,
+    Name: this.Name,
+    hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
+    };
+    send(data, "add");
+  }
+}
+
 function linear(ev)
-{
+{ let l = new Linear(ev);}
   // Linear Transformation of input, defined through dimenion of feature space between other modules
-  var name = "A" + globalN.toString();
+ /* var name = "A" + globalN.toString();
   globalN++;
   let rect=genRect(ev, "Linear", name, "red");
 
@@ -322,7 +424,7 @@ LOG(name, globalN);
 
   console.log("FROM LINEAR", ev);
   return data;
-}
+}*/
 
 
 function Output(ev, th)
@@ -570,12 +672,14 @@ function selectColorify(t)
   }
 }
 function rowGen(obj, attrs, className){
-  for (let el in attrs)
-    appendHTMLState(obj, "<p class=\"" + className + "\" id=\"" + el + "\">" + el + ":" + attrs[el] + "</p>");
+  for (let el in attrs){
+    let locp = document.createElement("p"); locp.addEventListener("click", attrs[el]); locp.innerHTML = el + ":" + attrs[el];
+    obj.appendChild(locp);
+    //appendHTMLState(obj, "<p class=\"" + className + "\" id=\"" + el + "\" onclick=\""+attrs[el]+"(event)\">" + el + ":" + attrs[el] + "</p>");
 
 
   
-
+}
   console.log(obj.innerHTML);
   return obj;
 }
