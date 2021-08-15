@@ -91,6 +91,8 @@ class ModelCache:
     elif data_type == "remove":
       #TODO handle deletion of different modules or connections
       pass
+    elif data_type == "update":
+      self.cache[message["Name"]] = message
     elif data_type == "signal": 
       
       if message["signal"] == "verbose":

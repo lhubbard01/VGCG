@@ -11,16 +11,7 @@ function Xr(event, owner){console.log("before menu make"); let x = new Menu(even
 
 
 
-
-
-
-
 var lineCount = 0;
-
-
-
-
-
 
 
 
@@ -62,8 +53,9 @@ function getInput(promptstr){
   return new_in;
 }
   
-
-
+function updateAttr(id, obj){
+	ID_LOOKUP[id] = obj;
+}
 class Line extends SVG_HTML{
   constructor(x1,y1,x2,y2,n1,n2,name){
     super(name);
@@ -80,8 +72,9 @@ class Line extends SVG_HTML{
       pointB_setcolor: () => {
         setColor(this.originalB.Name, "green");},
       setA_in: () => { 
-        let newIns = getInput("new input count for " + this.originalA.Name + " : "); 
-        this.originalA.ins = newIns;
+        let newIns = Number(getInput("new input count for " + this.originalA.Name + " : "));
+        this.originalA.outs = newIns;
+				updateAttr(this.originalA.Name, this.originalA);
         console.log(this);
         this.update("A", newIns);}
     }
@@ -169,19 +162,19 @@ class Rect extends SVG_HTML{
     let newRect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
     + "\" height=\"" + this.size.toString() + "\" width=\"100\""
     + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"" + this.color + "\"/>";
-    let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
-    appendHTMLState(svgCanvas, textrect + "\n" + newRect );
+    
+		let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
+    
+		appendHTMLState(svgCanvas, textrect + "\n" + newRect );
+
     this.html = newRect;
     ID_LOOKUP[this.Name] = ptr;
   }
 }
 
 
-
-
 function genRect(ev, title, Name, color)
 {
-  //var r = new Rect(ev.clientX, ev.clientY, 100, "red", title, Name);
   var r = new Rect(ev.offsetX, ev.offsetY, 100, color, title, Name);
   r.render();
   LOG(r);
@@ -207,6 +200,9 @@ function checkLocDOM(ev, obj)
     }
     return false;
 }
+
+
+
 function checkLocHTML(ev, obj)
 {
   LOG("CHECK LOG: ", ev, obj);
@@ -286,10 +282,7 @@ function connect(ev)
         out.init();
         out.render("onauxclick", "Xr");
         connEl = null; p1 = null; p2 = null; maybeEl = null;
-
       }
-
-  
 
   }
 
@@ -308,30 +301,9 @@ class Point{
 };
 
 
-var PointA = new Point(0,0,"PA");
-var PointB = new Point(100,100,"PB");
-var globalSearch = {};
 
 
 
-//CALLBACKS FOR CLICK HANDLING
-function declarecb(){
-}
-/*function connectcb (){
-  //It is assummed 
-  //Point A and Point B will be initialized at loadtime, and will be viable for search
-  let nameA = search(PointA)
-  let nameB = search(PointB);
-  if (!nameA || !nameB){
-    LOG("modules not c=found for conneciton");
-  }
-  else{
-    //let connect = {In:{Name: nameA.Name, count: count}, Out:{Name:nameB.Name, count: count}};
-    send(connect);
-    LOG("sent " + JSON.stringify(connect))
-  }
-}
-*/
 
 //STATE MANAGEMENT
 function search(PointX){
@@ -350,34 +322,6 @@ function input(ev,th){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Linear extends Rect{
   constructor(ev){ 
     let Name = "A" + globalN.toString();
@@ -391,44 +335,37 @@ class Linear extends Rect{
     this.ins = 100;
     this.outs = 50;
     this.sender = this.sender.bind(this);
-    this.sender();
+    this.sender("ADD");
   }
   
-  sender(){
+  sender(signal_type){
     let data = {isParametric: this.isParametric,
     isNative: this.isNative,
     mType: this.mType,
     Name: this.Name,
     hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
     };
-    send(data, "add");
+
+    console.log(data);
+    if (signal_type == "ADD"){
+			send(data, "add");
+			} else if (signal_type == "UPDATE") { 
+				send(data, "update"); 
+		}
   }
 }
 
 function linear(ev)
-{ let l = new Linear(ev);}
+{
   // Linear Transformation of input, defined through dimenion of feature space between other modules
- /* var name = "A" + globalN.toString();
-  globalN++;
-  let rect=genRect(ev, "Linear", name, "red");
-
-LOG(name, globalN);
-  LOG(rect);
-  let data = {isParametric: true,
-    isNative: true,
-    mType:"Linear",
-    
-    Name: rect.Name,
-    hyperp: JSON.stringify({in_features: 100, out_features: 50})
-  };
-  send(data, "add");
-
-
-
-  console.log("FROM LINEAR", ev);
-  return data;
-}*/
-
+  let l = new Linear(ev);
+}
+function update(ev){ 
+	let maybeRect = checkIfRect(ev); 
+	if (maybeRect.found ) {
+		ID_LOOKUP[maybeRect.rect.id].sender("UPDATE");
+	}
+}
 
 function Output(ev, th)
 {
@@ -446,7 +383,7 @@ function Output(ev, th)
 
 
 
-
+/// IMPORTANT
 async function send(data_in, signal_type)
 {
   //handles comm with express and effectively interfaces frontend to backend
@@ -474,6 +411,8 @@ async function send(data_in, signal_type)
   if (verbose>1)
     console.log("completed logging request");
 }
+
+
 
 function relu(ev){
   // ReLU Module, sends info to model backend
@@ -545,7 +484,6 @@ function buildSig (ev){
   send(dataIn, "signal");
 }
 
-
 function registerSig (ev){
   //used by the ython model state to update cache registration
   LOG("REGISTER");
@@ -584,6 +522,7 @@ var idToCB = {
   "relu"    : relu,
   "output"  : Output,
   "connect" : connect,
+  "update"  : update,
   "rect"    : genRect,
   "bilinear": linear,
   "linear"  : linear,
@@ -597,7 +536,6 @@ var idToCB = {
 
 
 
-//setTimeout(300, ()=>{document.getElementsByTagName("NAV").item(0).addEventListener("click", (e));});//(t) => { varidToCB[drawablecbN](t);});});
 function drawClick(ev)
 {
   //Implements the drawing to the document from callback, among other things
@@ -610,7 +548,6 @@ function drawClick(ev)
 }
 
 setTimeout(300, ()=>{document.body.addEventListener("mouseUp", idToCB[drawableN]);});
-//setTimeout(300, ()=>{SVG = document.getElementById("drawablesvg");});
 setTimeout(300, ()=>{document.body.addEventListener("mouseDown", () => { drawablecbN = "null";})});
 
 
@@ -630,7 +567,6 @@ function selection(t)
     LOG(t, idToCB[t.id]);
   }
 
-  //LOG(drawablecbN, idToCB[drawablecbN]);
 }
 
 var buttonid = null;var selected = null;
@@ -653,12 +589,9 @@ async function LOG()
       .then(res => res.json())
       .catch(err => console.error(err));
  };
-  /*fLOG(drawablecb);
-    drawable.removeEventListener("click", drawablecb);*/
 
 
 
-setTimeout(2000, ()=>{new Line(new Point(0,0,"00"), new Point(window.width, window.height, "01")).render();});
 function selectColorify(t)
 {
   if (buttonid != t.id)
@@ -674,16 +607,20 @@ function selectColorify(t)
     LOG(`Updated button to red.`);
   }
 }
+
+
 function rowGen(obj, attrs, className){
-  for (let el in attrs){
-    let locp = document.createElement("p"); locp.addEventListener("click", attrs[el]); locp.innerHTML = el + ":" + attrs[el];
-    obj.appendChild(locp);
-    //appendHTMLState(obj, "<p class=\"" + className + "\" id=\"" + el + "\" onclick=\""+attrs[el]+"(event)\">" + el + ":" + attrs[el] + "</p>");
-
-
   
-}
-  console.log(obj.innerHTML);
+	for (let el in attrs){
+    let locp = document.createElement("p"); 
+
+		locp.addEventListener("click", attrs[el]); 
+		locp.innerHTML = el;
+
+    obj.appendChild(locp);
+	}
+  
+	console.log(obj.innerHTML);
   return obj;
 }
 
@@ -724,21 +661,18 @@ class Menu
     }
     this.render(e);
   }
-  
-
-
 
   render(e){
     let localdiv = document.createElement("div");
-    localdiv.className = "popup";  this.html = "";
-    console.log("BEFORE", localdiv);
-    rowGen(localdiv, this.obj.attrs, "popup-row");
-    console.log("AFTER", localdiv);
-    //localdiv.innerHTML  
-  //localdiv.innerHTML = "<p id=\"del\" class=\"popup-row\">this is del</p><p id=\"rename\" class=\"popup-row\">this is rename</p><p id=\"closeB\" class=\"popup-row\">end</p>";
-    localdiv.style.position = "absolute";
+    
+		localdiv.className = "popup";  
+    
+		rowGen(localdiv, this.obj.attrs, "popup-row");
+    
+		localdiv.style.position = "absolute";
     localdiv.style.left = e.clientX + "px";
     localdiv.style.top = e.clientY + "px";
+
     this.html = localdiv;
     document.body.appendChild(localdiv);
   

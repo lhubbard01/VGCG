@@ -90,7 +90,7 @@ class ModuleIntermediateRepr:
     if self.isNative:
       module_builder_string += "nn." + self.mType + "("
     
-    if self.isParametric:
+    if self.isParametric and len(list(self.hypers.keys())) != 0:
       in_kv_pair = seek("in_", self.hypers)
       module_builder_string += str(in_kv_pair[0]) + " = " + str(in_kv_pair[1]) + ", "
       print(module_builder_string)

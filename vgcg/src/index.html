@@ -69,6 +69,7 @@ function preventer (e){
 
   <div class="module" id="connect" onclick="selection(this);">connect</div>
   <div class="module" id="select" onclick="selection(this);">select</div>
+	<div class="module" id="update" onclick="selection(this);">update</div>
   </br>
 
   
@@ -80,10 +81,6 @@ function preventer (e){
   <div class="module" id="relu" onclick="selection(this);">relu</div>
   <div class="module" id="rect" onclick="selection(this);">rectangle</div>
 
-  <!--<div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">-->
-  <!--<div id="drawCont" style=" height: 480px; background: blue" >
-  <canvas style="width: 100%; height: 100%" id="drawable" onmousemove="MousePosDebugger(event)">Drawable</canvas>
-  </div> -->
   <div id="right-sb" style="background: white;" onmousemove="MousePosDebugger(event)">
     <form id="formupdate" action="/api/update"  method="POST" target="_blank">
       <input id="msg-input" /> 
@@ -93,18 +90,6 @@ function preventer (e){
 
   </section>
   </div> 
-<!--
-    <form id="formmodel" action="/api/model"  method="POST" target="_blank" >
-      <label for="hyper-param">Hypers:</label><input id="model-input" name="hyperp" /> <br>
-      <label    for="inbounds">in features:</label><input id="in-features" name="infeatures" /> <br>
-      <label   for="outbounds">out features:</label><input id="out-features" name="outfeatures" /> <br>
-      <label        for="Name">Name</label><input id="Name" name="Name"/><br>
-      <label      for="m-type">mType</label><input id="mtype" name="mType"/><br>
-      <label   for="is-native">isNative</label><input id="isnative" name="isNative" type="checkbox"/><br>
-    <label for="is-parametric">isParametric</label><input id="isparametric" name="isParametric" type="checkbox"/><br>
-    
-    <button id="send" onclick="handleSendLayer(event)">Send 2</button>
-  </form>-->
   
 
 
@@ -177,56 +162,5 @@ function preventer (e){
 
 
   form_update.addEventListener("submit", update_send);
-  //draw.on_click = handleDrawClick
-/*
-  async function handleSendLayer(e)
-  {
-      let model_input = document.getElementById("model-input");
-      let value_bufr  = outcome_box.value;
-
-      alert (JSON.stringify(e));
-
-      const data = JSON.stringify({data:e, route: "model"});
-      
-      if (e.isTrusted)
-        return 1;
-
-      const options = {
-        method : "POST",
-        headers: {"Content-Type":"application/json"},
-        body:data
-
-      };
-
-
-      const res = await fetch("/api/model", options)
-                        .then(res => res.json())
-                        .catch(err =>console.error(err));
-
-      outcome_box.value = res.msg + "\n" + value_bfr;
-
-  }
-/*
-
-  form_model.addEventListener("submit", 
-  e => {
-    e.preventDefault();
-    
-    let text_data = {
-      hyperp: JSON.stringify(JSON.parse("{"+model_input.value+"}")),
-      isParametric: true ? isparametric.value == "on" : false, 
-      isNative:     true ? isnative.value == "on": false ,
-      mType:        mtype.value,
-      Name:         Name.value
-    };
-    model_input.value = "";
-    handleSendLayer(text_data);
-  });*/
-/*
-   showbtn.addEventListener("click", e => {
-      e.preventDefault();
-      handleUpdate("show()");
-    });*/
-  //drawable.addEventListener("click", genRect);
 	</script>
 </html>
