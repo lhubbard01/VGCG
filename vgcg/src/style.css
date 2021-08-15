@@ -1,0 +1,69 @@
+main{
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+};
+.moduleDiv{
+background: red;
+};
+.moduleDiv:hover{
+  background: #000;
+}
+
+
+.module{
+  margin: 2px;
+  border: 1px;
+
+  height: 15px;
+  
+  background: #EEE;
+}
+
+#sidebar{
+  float: right;
+display: grid;
+
+
+grid-template-rows: 1fr;
+}
+
+.popup{
+  opacity: 1.0;
+  background: #303030;
+  color: #FFF;
+  padding: 5px;
+}
+.popup-row{
+  opacity: 0.3;
+  margin: 0px;
+  padding: 0px;
+  color:#FFF;
+}
+
+.popup-row:hover{
+  margin: 0px;
+  padding: 0px;
+  opacity: 1.0;
+  background: #E0E0E0;
+  color: #000000;
+};
+
+
+
+
+
+.module:hover{
+background: #111;
+color: #EEE;
+
+}
+
+
+
+.svgline{
+  stroke-width: 10;
+}
+#drawable_svg{
+  height: 100%; width: 100%; 
+};
+
