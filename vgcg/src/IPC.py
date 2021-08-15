@@ -1,6 +1,5 @@
 import os
 import time
-from IPython import embed
 import json
 import logging
 import select
@@ -118,7 +117,6 @@ def handle_message_runtime( msg_dict):
       outbound = True
   except Exception as se:
     
-    embed()
     try:
       exec(msg, locals(), globals())
       if "plt" in msg:

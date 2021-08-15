@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>Computational Graph Drawer</title>
+  <title>App 1</title>
   <link rel="stylesheet" href="./style.css">
 <script type="text/javascript" src="./drawing.js"></script>
 
@@ -34,33 +34,21 @@ function globalStateCheck(e){
   }
 } // perform global state check during event (eg click)
 
-/*function menu_create(e){
-  
-  let menu = new Menu(e, null); /* if (popupExists
-    popup.remove();
-  }
-  let localdiv = document.createElement("div");
-  localdiv.className = "popup";
-  localdiv.innerHTML = "<p id=\"del\" class=\"popup-row\">this is del</p><p id=\"rename\" class=\"popup-row\">this is rename</p><p id=\"closeB\" class=\"popup-row\">end</p>";
-  localdiv.style.position = "absolute";
-  localdiv.style.left = e.clientX + "px";
-  localdiv.style.top = e.clientY + "px";
-  document.body.appendChild(localdiv);
-
-  
-  popup = localdiv;
-  popupExists = true;
-*/
 
 
 
-function alerter(e){
+
+  function alerter(e){
+    console.log(e);
     if (e.ctrlKey == true){
       console.log(e);
+      alert("auxclick was called");
       console.log("done");
     }
-    console.log(e);
-};
+
+
+
+  };
 function preventer (e){
   e.preventDefault();
 }
@@ -73,22 +61,24 @@ function preventer (e){
 <svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
 </svg>
 <div class="UI">
+  <section id="sidebar" onmousemove="MousePosDebugger(event)">
+  <div class="module" id="verbose" onclick="selection(this);">verbose</div>
+  <div class="module" id="build" onclick="selection(this);">build</div>
+  <div class="module" id="register" onclick="selection(this);">register</div>
+  </br>
 
-  <section id="sidebar">
-  <div class="actionCB" id="verbose" onclick="selection(this);">verbose</div>
-  <div class="actionCB" id="build" onclick="selection(this);">build</div>
-  <div class="actionCB" id="register" onclick="selection(this);">register</div>
-</br>
-  <div class="actionCB" id="connect" onclick="selection(this);">connect</div>
-  <div class="actionCB" id="select" onclick="selection(this);">select</div>
+  <div class="module" id="connect" onclick="selection(this);">connect</div>
+  <div class="module" id="select" onclick="selection(this);">select</div>
+  </br>
 
-</br>
-  <div class="actionCB" id="linear" onclick="selection(this);">linear</div>
-  <div class="actionCB" id="bilinear" onclick ="selection(this);">bilinear</div>
   
-</br>
-  <div class="actionCB" id="relu" onclick="selection(this);">relu</div>
-  <div class="actionCB" id="rect" onclick="selection(this);">rectangle</div>
+  </br>
+  <div class="module" id="linear" onclick="selection(this);">linear</div>
+  <div class="module" id="bilinear" onclick ="selection(this);">bilinear</div>
+  
+  </br>
+  <div class="module" id="relu" onclick="selection(this);">relu</div>
+  <div class="module" id="rect" onclick="selection(this);">rectangle</div>
 
   <!--<div id="drawable" style="height: 600px; width: 600px; border: 3px solid black; " onclick="drawable(event);">-->
   <!--<div id="drawCont" style=" height: 480px; background: blue" >
@@ -120,9 +110,9 @@ function preventer (e){
 
 
 
-
 </main>
 
+</main>
 </body>
 
 <p id="writeTo"></p>
@@ -230,6 +220,13 @@ function preventer (e){
       Name:         Name.value
     };
     model_input.value = "";
-    handleSendLayer(text_data);*/
-</script>
+    handleSendLayer(text_data);
+  });*/
+/*
+   showbtn.addEventListener("click", e => {
+      e.preventDefault();
+      handleUpdate("show()");
+    });*/
+  //drawable.addEventListener("click", genRect);
+	</script>
 </html>

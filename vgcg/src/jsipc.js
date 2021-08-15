@@ -1,15 +1,11 @@
 //interfacing with frontend 
-//Adapted from https://levelup.gitconnected.com/inter-process-communication-between-node-js-and-python-2e9c4fda928d
 const express = require("express");
 const http = require("http");
 const FIFO = require("fifo-js");
+const fs = require("fs");
 
 const app = express();
 const bodyParser = require("body-parser")
-//app.use(bodyParser.json());
-//app.get("/", (req, res) => { res.sendFile(__dirname + "/d.html");});
-//File system imports for IPC 
-const fs = require("fs");
 const {spawn, fork } = require("child_process");
 
 const IPC_PATH_A = "pipe_a";
@@ -46,33 +42,19 @@ fifo_b.on("exit", function (status) {
   app.post("/api/update", bodyParser.json(), (req, res) => { //when req hits api endpoint update, log data packet and write to pipe
     
     console.log("NODE [UPDATE]: ----Send data packet Update----");
-
     if (JSON.stringify(req.body.data).length != 2){
         console.log(`NODE [UPDATE]: SENDING REQUEST ${JSON.stringify(req.body)}`);
-    //console.log(req);
-        //fifoWs.write(`${new Date().toISOString()}`);
         fifoWs.write(`${JSON.stringify(req.body)}`);
         setTimeout(() => { console.log("waited")}, 200);
+
        fifoRs.once('data', data => { // only read this once upon post
         res.status(201).json({msg: data.toString()});
         console.log("NODE [UPDATE]: ending transaction")
         }           
       )
-
-
       setTimeout(() => {console.log("NODE: stalling")}, 200);
 
 
-
-      console.log("NODE [UPDATE]: outer layer of async calls, returning ouput")
-        /*console.log('    Date   : ' + data.toString());
-        console.log('    Latency: ' + latency.toString() + ' ms');*/
-
-    //fifoWr.write( () => {`${new Date().toISOString()}`});
-    //console.log("---- Send data packet ----");
-    //fifoWr.write(`${new Date().toISOString()}`);
-    //console.log(req.body);
-    //res.status(200).json({msg: "logged"});
     console.log("NODE [UPDATE]: end send data packet");
   
     }
@@ -93,11 +75,6 @@ fifo_b.on("exit", function (status) {
   //when req hits api endpoint update, log data packet and write to pipe
   app.post("/api/model", bodyParser.json(), (req, res) => { //when req hits api endpoint update, log data packet and write to pipe
     console.log("NODE [MODEL]: ---- Send data packet Model ----");
-    //console.log("---- ", req.body);
-    //console.log(req);
-        //fifoWs.write(`${new Date().toISOString()}`);
-        
-    //var parsed = JSON.parse(req.body);
     
     console.log(JSON.stringify(req.body.data));
 
@@ -107,54 +84,22 @@ fifo_b.on("exit", function (status) {
       var X = JSON.stringify(req.body);
     
       fifoWs.write(`${X}`);
-    //fifoWs.write(`${req.body.data}`);
         setTimeout(() => { console.log("NODE [MODEL]: waited")}, 200);
-            /*console.log('----- Received packet -----');
-            console.log(data.toString());
-            console.log(data);
-            console.log("running");
-            return data;
-          })*/
        fifoRs.once('data', data => { // only read this once upon post
-        //sent_time = new Date(data.toString());
         console.log('NODE [MODEL]: ----- Received packet -----');
         console.log(data.toString());
-        /*console.log('    Date   : ' + data.toString());
-        console.log('    Latency: ' + latency.toString() + ' ms');*/
-        console.log("running");
         res.status(201).json({msg: data.toString()});
         console.log("NODE [MODEL]: ending transaction")
         }           
       )
       setTimeout(() => {console.log("NODE [MODEL]: stalled")}, 2000);
       console.log("NODE [MODEL]: outer layer of async calls, returning ouput")
-        /*console.log('    Date   : ' + data.toString());
-        console.log('    Latency: ' + latency.toString() + ' ms');*/
-    //fifoWr.write( () => {`${new Date().toISOString()}`});
-    //console.log("---- Send data packet ----");
-    //fifoWr.write(`${new Date().toISOString()}`);
     console.log(req.body);
-    //res.status(200).json({msg: "logged"});
     console.log("NODE [MODEL]: end send data packet"); }
   });
 
  app.listen(3001); // this could be passed by arg, is the localhost location as lient for this server.
 console.log("NODE [GLOBAL]: listening");
 });
-  /*let fifoWr = fs.createWriteStream(IPC_PATH_A);
-  let fifoRd = new FIFO(IPC_PATH_B);
-  fifoRd.read(data => {
-    now_time = new Date();
-    sent_time = new Date(data.toString());
-      let latency = now_time - sent_time;
-      console.log("---- Recieved data packet ----");
-      console.log("Latency: " + latency.toString() + "ms");
-  }
-);
-
-*/
-//let fifoRs = fs.createReadStream(fd);
-  /*setInterval( () => { */
-  /*}, 1000);*/
 console.log("end"); // exit
 
