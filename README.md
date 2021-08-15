@@ -27,9 +27,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 IMAGES
-![image1](/assets/
-![image2](/assets/
-![image3](/assets/
-![image4](/assets/
-![image5](/assets/
-![vid
+![image1](/assets/image1.jpg)
+![image2](/assets/image2.jpg)
+![image3](/assets/image3.jpg)
+![image4](/assets/image4.jpg)
+![image5](/assets/image5.jpg)
+![image6](/assets/image6.jpg)
+![vid](/assets/vid.mkv)
+
