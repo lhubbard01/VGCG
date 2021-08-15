@@ -412,26 +412,41 @@ async function send(data_in, signal_type)
     console.log("completed logging request");
 }
 
+class ReLU extends Rect{
+  constructor(ev){
+    let Name = "R" + globalN.toString();
+    super(ev.offsetX, ev.offsetY, 100, "blue", "ReLU", Name);   
+    this.Name = Name;
+    globalN++;
+    this.render(this);
+    this.isParametric = false;
+    this.isNative = true;
+    this.mType = "ReU";
+    this.ins = 100;
+    this.outs = 50;
+    this.sender = this.sender.bind(this);
+    this.sender("ADD");
+  }
+  
+  sender(signal_type){
+    let data = {isParametric: this.isParametric,
+    isNative: this.isNative,
+    mType: this.mType,
+    Name: this.Name,
+    hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
+    };
 
-
+    console.log(data);
+    if (signal_type == "ADD"){
+			send(data, "add");
+			} else if (signal_type == "UPDATE") { 
+				send(data, "update"); 
+		}
+  }
+}
 function relu(ev){
+  let r = new ReLU(ev);
   // ReLU Module, sends info to model backend
-  var name = "R" + globalN.toString();
-  globalN++;
-  let rect = genRect(ev, "ReLU", name, "blue");
-
-  let data = {
-    isParametric: false,
-    isNative: true,
-    mType:"ReLU",
-    
-    Name: rect.Name,
-    hyperp: JSON.stringify({})
-  };
-  if (verbose>0)
-    LOG("sending relu", JSON.stringify(data));
-  send(data, "add");
-  return data;
 }
    
 //DOM STATE MANAGEMENT

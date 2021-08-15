@@ -101,7 +101,7 @@ class ModuleIntermediateRepr:
     for hparam in self.hypers.keys():
       if "out_" not in hparam and "in_" not in hparam:
         module_builder_string += hparam + " = " + str(self.hypers[hparam]) + ", "
-    if len(list(self.hypers.keys())) > 0:
+    if len(list(self.hypers.keys())) > 0 and self.isParametric:
       module_builder_string = module_builder_string[:-2] + ")"
     else: module_builder_string += ")"
     return module_builder_string
