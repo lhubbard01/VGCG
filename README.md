@@ -1,7 +1,12 @@
 **Visual Graphics for Computational Graph Definitions**
+
 This is a graphical user interface for developing computation graphic models on local machines.
 It is intended to eventually support model definitions through the GUI, whereby their edges, in a directed, acyclic, feedforward fashion, can be used for generating an intermediate represetnation that is read by a target framework of choice. 
 It is intended that the user can create network components in a modular and efficient manner, emphasizing reusability for efficient model definitions.
+Instructions: the buttons on the right side, some of them work. the ones that work are connect, linear, verbose, and build. Relu works ut doesnt connect to other things because it has yet to inherit from Rect, which will allow for a really easy way to communicate data
+verbose  tells the gen.py runtime to print all data it has stored (its internal state for data to build from)
+
+build writes the graph to a file in the same directory titled "local.py". 
 
 
 Copyright (C) 2021,  Lyle Hubbard
