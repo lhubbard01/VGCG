@@ -1,4 +1,49 @@
 //GEOMETRIC PRIMITIVES
+function promptGen(list_of_name_to_default){
+  var gathered_values = [];
+  for (let el in list_of_name_to_default)
+  {
+      gathered_values.push(prompt(el[0], el[1]));
+  }
+  return gathered_values;
+}
+
+function htmlel(type){
+  let loc = document.createElement(type);
+  for (let i = 1; i < arguments.length; i++){
+    switch(i){
+      case 1: loc.className = arguments[i]; break;
+      case 2: loc.id = arguments[i]; break;
+      case 3: { 
+        for ( let el in arguments[3]){
+          loc.setAttribute(el, arguments[3][el]); // sets the left side to the right side eg type=text
+        } 
+      } break;
+
+      default: break;
+    }
+  } return loc;
+}
+
+
+
+function prompter(dims){
+  let args = []
+  for (let i = 0; i < dims; i++)
+    args.push(["dim" + i.toString(),100]);
+/*
+  let prompter = htmlel("div", "prompter", "dims");
+
+
+  for (let i = 0; i < dims; i++){
+    prompter.appendChild(htmlel("input", "promptrow", "dim" + i.toString(), {"type" : "text"}));
+  }
+  document.body.appendChild(prompter);*/
+  let out = promptGen(args);
+  return out;
+}
+
+  // Linear Transformation of input, defined through dimenion of feature space between other modules
 var ID_LOOKUP = {};
 
 var verbose = 3;
@@ -322,6 +367,54 @@ function input(ev,th){
 
 
 
+class Module extends Rect
+{
+  constructor(ev, mType, isParametric, isNative, NamePre)
+  {
+    let Name = NamePre + globalN.toString();  globalN++;
+
+    let color = isParametric ? "red" : "blue";
+    super(ev.offsetX, ev.offsetY, 100, color, mType, Name);   
+
+
+    this.Name         = Name;
+    this.isParametric = isParametric;
+    this.isNative     = isNative;
+    this.mType        = mType;
+    this.hyperp       = {};
+    this.render(this);
+
+
+    if (isParametric){
+      let ins_outs = prompter(2);
+      this.ins = ins_outs[0];
+      this.outs = ins_outs[1];
+    } else { 
+      this.ins = 500;
+      this.outs = 500;
+    };
+    
+    this.sender = this.sender.bind(this);
+    this.sender("ADD");
+  };
+
+  sender(signal_type){
+    let data = {isParametric: this.isParametric,
+    isNative: this.isNative,
+    mType: this.mType,
+    Name: this.Name,
+    hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
+    };
+
+    console.log(data);
+    if (signal_type == "ADD"){
+			send(data, "add");
+		} else if (signal_type == "UPDATE") { 
+			send(data, "update"); 
+		}
+  }
+}
+
 class Linear extends Rect{
   constructor(ev){ 
     let Name = "A" + globalN.toString();
@@ -359,6 +452,9 @@ function linear(ev)
 {
   // Linear Transformation of input, defined through dimenion of feature space between other modules
   let l = new Linear(ev);
+}
+function bilinear(ev){
+  let bl = new Module(ev, "Bilinear", true, true, "B");
 }
 function update(ev){ 
 	let maybeRect = checkIfRect(ev); 
@@ -509,8 +605,10 @@ function registerSig (ev){
   send(dataIn, "signal");
 }
 
-
-
+function sigmoid(ev){    let s = new Module(ev, "Sigmoid", false, true, "S");}
+function softmax(ev){    let s = new Module(ev, "Softmax", false, true, "S");}
+function leakyrelu(ev) { let l = new Module(ev, "LeakyReLU", false, true, "L"); }
+function tanh(ev) {      let t = new Module(ev, "Tanh", false, true, "T"); }
 
 
 var dragging = null; //helper for moving around selected elements
@@ -532,17 +630,24 @@ var drawablecbN = "rect"; // initial callback
 
 
 // CALLBACK DICTIONARY
-var idToCB = { 
-
-  "relu"    : relu,
+var ID_TO_CB = { 
   "output"  : Output,
   "connect" : connect,
   "update"  : update,
+
   "rect"    : genRect,
-  "bilinear": linear,
+  "bilinear": bilinear,
   "linear"  : linear,
+  
+  "relu"    : relu,
+  "lrelu"   : leakyrelu,
+  "softmax" : softmax,
+  "sigmoid" : sigmoid,
+  "tanh"    : tanh,
+  
   "input"   : input,
   "select"  : select,
+
   "verbose" : verboseSig,
   "build"   : buildSig,
   "register": registerSig,
@@ -559,10 +664,10 @@ function drawClick(ev)
 
 
 
-  idToCB[drawablecbN](ev);
+  ID_TO_CB[drawablecbN](ev);
 }
 
-setTimeout(300, ()=>{document.body.addEventListener("mouseUp", idToCB[drawableN]);});
+setTimeout(300, ()=>{document.body.addEventListener("mouseUp", ID_TO_CB[drawableN]);});
 setTimeout(300, ()=>{document.body.addEventListener("mouseDown", () => { drawablecbN = "null";})});
 
 
@@ -578,8 +683,7 @@ function selection(t)
   if (verbose > 2)
   {
     console.log("drawable callback name", new String(drawablecbN), "drawable id selected", new String(t.id));
-
-    LOG(t, idToCB[t.id]);
+    LOG(t, ID_TO_CB[t.id]);
   }
 
 }
@@ -628,9 +732,10 @@ function rowGen(obj, attrs, className){
   
 	for (let el in attrs){
     let locp = document.createElement("p"); 
-
-		locp.addEventListener("click", attrs[el]); 
-		locp.innerHTML = el;
+    if (!(className === null) && !(typeof className === "undefined")) 
+      locp.className = className;
+	  locp.addEventListener("click", attrs[el]); 
+	  locp.innerHTML = el;
 
     obj.appendChild(locp);
 	}
@@ -638,6 +743,7 @@ function rowGen(obj, attrs, className){
 	console.log(obj.innerHTML);
   return obj;
 }
+
 
 
 
