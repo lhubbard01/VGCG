@@ -5,6 +5,8 @@ import logging
 import select
 import signal
 import re
+
+
 #designators for the interprocess communication via pipes with node server (bidirectional)
 IPC_FIFO_NAME_A = "pipe_a"
 IPC_FIFO_NAME_B = "pipe_b"
@@ -72,7 +74,7 @@ class FifoModel:
 
   def write(self, msg : (bytes, str)):
     
-    #logger.info("MESSAGE: ", type(msg), msg, "\nPIPE: ", type(self.pipe))
+    logger.info("MESSAGE: ", type(msg), msg, "\nPIPE: ", type(self.pipe))
     if not isinstance(msg, bytes):
       if not isinstance(msg,str):
         os.write(self.pipe, bytes(str(msg), "utf-8"))
@@ -91,46 +93,39 @@ def moveToModel(msg):
   fifo_model(msg)
 
 exec_history = []
+symtable = {}
 def log_input(msg, *args):
   print(msg, args)
   #global logger
   preface_str = ""
-  
-
   for arg in args:
     preface_str += str(arg) + " "
-
-
   logger.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
   return msg
 
 def handle_message_runtime( msg_dict):
-  print("hmr")
-  msg = msg_dict["data"]
-  outbound = None
-  global exec_history #, logger
+  global exec_history, symtable #, logger
+  msg, outbound = msg_dict["data"], None
+  l_r = msg.split("=")
+  
+
+  l_r[0] = l_r[0].replace(" ","")
   try:
-    outbound = eval(msg)
-    print("try eval succeeded")
-    print(outbound, "outbound eval")
-    if not outbound:
-      outbound = True
-  except Exception as se:
-    
+    exec(msg, globals(), locals())
+    if len(l_r) > 1:
+      exec("symtable[l_r[0]] = " + l_r[1], globals(), locals());
+      outbound = symtable[l_r[0]]
+  except NameError as ne:
     try:
-      exec(msg, locals(), globals())
-      if "plt" in msg:
-        outbound = plt.__dir__()
-      else:
-        print("try succeeded")
-        outbound = True
-    except SyntaxError as sse:
-      logging.critical(sse)
-      raise sse
+      print(symtable); print(msg.replace(" ",""))
+      outbound = symtable[msg]
+    except KeyError as ke:    outbound = str(ke)
+    except SyntaxError as se: outbound = str(se) 
+  except SyntaxError as se:
+    outbound = str(se) 
 
   exec_history.append(msg)
-  print("exitting handle message runtime, outbound is ", outbound)
-  return outbound
+  return outbound 
 
 
 def get_message(fifo, nbytes = 1024):
@@ -171,18 +166,13 @@ def process_message(msg):
     logging.debug(msgstr)
     
 
-    #exec("msgdict= "+msg.replace("\\",""), globals(),locals())
-    #print(msgdict)
     out1 = log_input(msgdict, "INBOUND")
     if msgdict["route"] == "model":
-      print("moving to model, message is as ", msg)
-      out1 = moveToModel(msg)#msgdict["data"])
-      print("moved to model")
+      out1 = moveToModel(msg)
       logging.info("moved to model")
 
     elif msgdict["route"] == "pyexec":
-      print("message rout is pyexec")
-      out1  = handle_message_runtime(msgstr)
+      out1  = handle_message_runtime(msgdict)
       logging.info("handle interpreter state pyexec") 
 
     log_input(out1, "OUTBOUND")
@@ -191,16 +181,11 @@ def process_message(msg):
 
 
   except Exception as e:
-    print("getting called at 170") 
     raise e
     logging.critical(e)
     raise e
-    #return str(type(e))+ "\n" + str(e)
 
 
-#def kb_int():
-
-#signal
 
 def pend_on_pipe(loc, name, F_flags):
   while True:
@@ -263,7 +248,7 @@ class IPC_Handler:
               outbound = process_message(msg)
   
               logger.info("-------writing------", outbound)
-              os.write(fifo_b, bytes(outbound,"utf-8"))
+              os.write(fifo_b, bytes(str(outbound),"utf-8"))
               
 
         

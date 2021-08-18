@@ -111,21 +111,18 @@ function preventer (e){
 
   //console.log(canvas);
   //console.log(ctx);
-
-  let msg_input = document.getElementById("msg-input");
   let model_input = document.getElementById("model-input");
   let form_update = document.getElementById("formupdate");
   let form_model = document.getElementById("formmodel");
   var outcome_box = document.getElementById("outcome");
   var draw = document.getElementById("drawable");
-  
-  async function handlePyMessageWrite(e)
-  {
+  async function handlePyMessageWrite(e){
+    var msg_input;
+    if (e == null)  msg_input = document.getElementById("msg-input").value;
+    else msg_input = e;
+    
     let value_bfr = outcome_box.value;
-    console.log(e);
-
-    const data = JSON.stringify({data: e, route: "pyexec"});
-    console.log(data);
+    const data = JSON.stringify({data: msg_input, route: "pyexec"});
 
     const options = {
               method : "POST",
@@ -137,19 +134,16 @@ function preventer (e){
     const res = await fetch("/api/update", options)
       .then(res => res.json())
       .catch(err => console.error(err));
+    console.log(res);
+    outcome_box.value =">>> " + msg_input +"\n\t" + res.msg + "\n" + value_bfr;
 
-    outcome_box.value = res.msg + "\n" + value_bfr;
 
-    h = document.body
-    b = document.getElementById("content");
     
-    new_p = document.createElement("p")
-    new_p.appendChild(document.createTextNode(res.msg));
     
-    b.appendChild(new_p)
   }
 
   function update_send(e) {
+    let msg_input = document.getElementById("msg-input");
     e.preventDefault();
 
     let text_data = msg_input.value;
