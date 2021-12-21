@@ -1,4 +1,4 @@
-from gen_fwd import GraphBuild, conn
+from gen_fwd import GraphBuild, FileTemplate, conn
 from IR      import ModuleIntermediateRepr, OutBound, x, xBound, InBound
 
 from loggingConf import init_logger, Prepend
@@ -12,21 +12,25 @@ def buildConnsDict(inbounds):
   print("BUILD CONNS:", inbounds)
   #construct a dictionary that organizes data as gen_fwd expects
   ins = {}
+  
   if not inbounds:
     return None
+
   for el in inbounds:
     for k, v in el.items():
       ins[k] = v
   return ins
+
+
 
 class ModelCache:
   def __init__(self):
     self.cache = {}
     self.conns = {}
 
-  def recv(self, msg,    asdict: bool = False):
+  def recv(self, msg, asdict: bool = False):
 
-    message = msg
+    #msg is a packet from the IPC
     data_type, message = msg["signal_type"], msg["pydict"]
     
     if data_type == "add":
@@ -44,6 +48,7 @@ class ModelCache:
     
     elif data_type =="conn-remove":
       print(self.conns)
+      #There might be a better way to represent the data packets. Maybe just make a class?
       self.conns[message["from"]["Name"]] ["outs"] = [
         el for el in self.conns[message["from"]["Name"]] ["outs"] if not message["to"]["Name"] in el.keys()]
 
@@ -88,11 +93,14 @@ class ModelCache:
               message["out"]["Name"]: message["out"]["count"],
             })
       print("PYTHON [CACHE]:from", self.conns, "\nPYTHON [CACHE]: message ", message)
+    
     elif data_type == "remove":
       #TODO handle deletion of different modules or connections
       pass
+    
     elif data_type == "update":
       self.cache[message["Name"]] = message
+    
     elif data_type == "signal": 
       
       if message["signal"] == "verbose":
@@ -100,27 +108,22 @@ class ModelCache:
       
       elif message["signal"] == "register":
         self.builder = GraphBuild(self.cache, indent = 4)
-
       
       elif message["signal"] == "reset": 
         self.cache = {}
         self.conns = {}
         print(self.__dict__)
         print("reset successfully executed")
+
       elif message["signal"] == "build":
         dict_modules=self.buildConns() 
         self.builder = GraphBuild(self.cache, indent = 4)
         dconns = self.builder.buildModuleGraph(dict_modules)
         print(dconns)
 
-
-
-
-        with open("local.py", "w") as f:
-          model = self.builder.model_str + "\n" + self.builder.fwd_str
-          print(model)
-          f.write(model)
-        
+        ft = FileTemplate()
+        ft.add_model(self.builder.model_str + "\n" + self.builder.fwd_str)
+        ft.write_to("local.py")
       #TODO handle processing of 1) build signal 2) launch signal
     else:
       raise ValueError("unexpected data dictionary!")
@@ -131,16 +134,19 @@ class ModelCache:
     others. inbounds and outbounds represent the information flow relative to 
     the module. This information is used by the gen_fwd module"""
     dMod = {}
-
     for name, value in self.conns.items():
-      
       print("NAME", name,"\n", self.cache[name], "*"*80)
+
       dMod[name] = conn(
                           name,
                           buildConnsDict(value["ins"]), 
                           buildConnsDict(value["outs"]))
+      
+      self.cache[name] = {
+          **self.cache[name],  
+          **dMod[name].dr
+        }
 
-      self.cache[name] = {**self.cache[name],  ** dMod[name].dr}
       self.cache[name] = ModuleIntermediateRepr(**self.cache[name])
 
     print(dMod)
@@ -178,12 +184,16 @@ if __name__ == "__main__":
         isParametric = True,
         mType = "Linear"), data_type = "model_cache")
 
-  cache.recv(iRepr(name = "C",
+  cache.recv(
+    iRepr(name = "C",
         inbound = [InBound(x("A",50)), InBound(x("B",50))], 
         outbound = [OutBound(xBound("D",50))],
+
         hypers = {"in_features": 100, "out_features":50},
+
         isNative = True,
         isParametric = True, 
+
         mType = "Linear"), data_type="model_cache")
 
   cache.recv(iRepr(name = "D",

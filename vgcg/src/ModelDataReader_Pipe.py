@@ -4,7 +4,7 @@ import time
 import select
 import struct
 from message import Msg
-from gen import *
+from gen import ModelCache
 from loggingConf import CountLogger, init_logger
 
 IPC_FIFO_MODEL = "model_pipe"
