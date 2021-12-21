@@ -13,15 +13,28 @@ from IR import ModuleIntermediateRepr
 
 
 class FileTemplate:
+  #used in buffering model file information until write. also where templates are loaded.
   def __init__(self, _file : str = None):
-    self.file = _file
-    self.template = None
+    self.file       = _file
+    self.template   = None
     self.insert_loc = 0
+    self.model = None
+
     if not _file: 
       self.template = "import torch\nimport torch.nn as nn\nimport torch.nn.functional as F"
+      self.insert_loc = len(self.template) 
+  
 
-      self.insert_loc = len(self.template)
-    
+  def add_model(self, model_str):
+    self.model = self.template + "\n\n" + model_str
+
+
+  def write_to(self, loc):
+    self.loc = loc
+    with open(loc, "w") as f:
+      print(self.model)
+      f.write(self.model)
+        
 
 class GraphBuild:
 
