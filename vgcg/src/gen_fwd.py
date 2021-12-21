@@ -12,6 +12,16 @@ from IR import ModuleIntermediateRepr
 
 
 
+class FileTemplate:
+  def __init__(self, _file : str = None):
+    self.file = _file
+    self.template = None
+    self.insert_loc = 0
+    if not _file: 
+      self.template = "import torch\nimport torch.nn as nn\nimport torch.nn.functional as F"
+
+      self.insert_loc = len(self.template)
+    
 
 class GraphBuild:
 
@@ -56,36 +66,53 @@ class GraphBuild:
 
 
   def addToConn(self, mod):
-    #global not_done, fwd_str
-    self.dConn[mod.name] = {"ins": mod.ins, "outs": mod.outs, "done": False, "repr_fwd": None}
+    self.dConn[mod.name] = {
+      "ins": mod.ins, 
+      "outs": mod.outs, 
+      "done": False, 
+      "repr_fwd": None
+    }
+
     print(mod)
+    #for inputs to the current module
     if mod.ins:
       for in_name, in_card in mod.ins.items():
         if in_name in self.not_done:
           return False;
+    #if none, give a default value
     else:
       mod.ins = {"X": 50}
       self.addToSym("X","X")
+
+
+    
+
     if len(mod.ins ) > 1:
       #requires concat for the inputs
+      #name of connecion, line being constructed
       name_ct, line = self.moduleInput(mod.ins) 
-    
 
       sym =  mod.name+"Out"
       self.addToSym(mod.name,sym)
-
+    
       line +=  "\n"+ self.indent * 2 * " " + sym +" = self." + mod.name + "(" + name_ct +")"
+    
     else:
       #otherwise vanilla serial
       line = mod.name + "Out = self." + mod.name + "(" + self.getInSym(list(mod.ins.keys())[0]) + ")"
-      self.addToSym(mod.name,mod.name+"Out")
-  
-    self.dConn[mod.name]["repr_fwd"] = line # line(s) representing requisite calls for forward pass
-    self.dConn[mod.name]["done"] = True #status token, also remove from not done list
+      self.addToSym(mod.name,mod.name+"Out") #add to symbol table
+    
 
+    # line(s) representing requisite calls for forward pass
+    self.dConn[mod.name]["repr_fwd"] = line 
+    
+    #status token, also remove from not done list
+    self.dConn[mod.name]["done"] = True 
     self.not_done.pop(self.not_done.index(mod.name))
-  
-    self.model_str += self.indent * 2 * " " + "self." + mod.name + " = " + self.init_call(self.reprs[mod.name]) + "\n"# repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
+    
+    # repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
+    self.model_str += self.indent * 2 * " " + "self." + mod.name + " = " + self.init_call(self.reprs[mod.name]) + "\n"
+    
     #This is the forward pass string 
     self.fwd_str   += self.indent * 2 * " " + self.dConn[mod.name]["repr_fwd"] + "\n"
 
@@ -94,7 +121,7 @@ class GraphBuild:
 
   def buildModuleGraph(self, dMod):
     self.not_done = [name for name in dMod.keys()]
-    #print(dConn, dMod, not_done)  
+    
     curr = None
     for mod in dMod.keys():
       if dMod[mod].ins == None:
@@ -102,10 +129,10 @@ class GraphBuild:
         curr = dMod[mod]
         break
 
-    self.addToConn( curr)
+    self.addToConn(curr)
 
     while curr:
-      print("Looping... ",curr)
+      #print("Looping... ",curr)
       if dMod[curr.name].outs :
         for mod in dMod[curr.name].outs:
           print(f"mod {mod} from {curr.name} outs")
@@ -116,29 +143,30 @@ class GraphBuild:
       if len(self.not_done) > 0 :
         print(self.not_done)
         curr = dMod[self.not_done[0]];
-        print(83)
         self.addToConn( curr);
 
       else: 
         break
   
 
+    # get last line of fwd, get first non whitespace nonempty substr
+    outvar = list(filter(lambda x: x != "", 
+        self.fwd_str.split("\n")[-2].split(" ")
+        )
+      )[0] 
 
 
-
-    outvar = list(filter(lambda x: x != "", self.fwd_str.split("\n")[-2].split(" ")))[0] # get last line of fwd, get first non whitespace nonempty substr
+    
+    #complete forward string for model
     self.fwd_str += self.indent * 2 * " " + "return " + outvar + "\n"
     return self.dConn
 
 
-
-
-
-
   def moduleInput(self, module_ins):
-    name="Cat"
+    #construct names describing the variables relative to their input connections, where mod is module
+    name = "Cat"
     for mod in module_ins.keys():
-      name+=mod
+      name += mod
     
     return name, name+" = torch.cat((" + self.getInSyms(module_ins) + "), dim = 1)"
 
@@ -150,14 +178,24 @@ class conn:
     self.name = name
     self.ins  = ins
     self.outs = outs
-    self.dr = {"Name":self.name, "inbound":self.ins, "outbound":self.outs}
+    self.dr = {
+      "Name"     :  self.name,
+      "inbound"  : self.ins, 
+      "outbound" : self.outs
+    }
+  
+
+
   def __repr__(self):
-    return str({"name":self.name, "ins": self.ins, "outs": self.outs})
+    return str(self.dr) #{"name" : self.name, "ins": self.ins, "outs": self.outs})
+  
   def __str__(self):
     return str(self.__repr__())
 
-"""
 
+
+"""
+TESTING CODE FOR THIS FILE
 buildModuleGraph({"A": conn("A",ins= None, outs = {"B":50, "C":50, "D":50}),
   "B" : conn("B", ins={"A":50}, outs={"C":50, "D":50}),
   "C":conn("C",ins= {"A":50, "B":50}, outs = {"D":50}),
