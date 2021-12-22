@@ -5,7 +5,7 @@
   <title>App 1</title>
   <link rel="stylesheet" href="./style.css">
 <script type="text/javascript" src="./drawing.js"></script>
-
+<script type="text/javascript" src="./canvasObj.js"></script>
 <script>
 
 var drawable = drawClick;
@@ -56,8 +56,10 @@ function preventer (e){
 </head>
 <body onauxclick="alerter(event)" oncontextmenu="preventer(event)" onclick="globalStateCheck(event)">
 <main >
-<svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
-</svg>
+  <svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
+  </svg>
+  <canvas id="canvas" onclick = "drawableC(event)"></canvas>
+
 <div class="UI">
   <section id="sidebar" onmousemove="MousePosDebugger(event)">
   <!--<div class="module" id="verbose" onclick="selection(this);">verbose</div>
@@ -162,5 +164,10 @@ function init_sidebar_options(){
 }
   init_sidebar_options();
   form_update.addEventListener("submit", update_send);
+  var canvas = document.getElementById("canvas");
+  
+
+  C = new Canvas(canvas);
+
 	</script>
 </html>

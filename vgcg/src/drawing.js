@@ -1,5 +1,6 @@
 //GEOMETRIC PRIMITIVES
 function promptGen(list_of_name_to_default){
+  alert("promt generate");
   var gathered_values = [];
   for (let el in list_of_name_to_default)
   {
