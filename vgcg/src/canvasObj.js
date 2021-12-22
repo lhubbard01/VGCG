@@ -1,11 +1,11 @@
 class CanvasObj{
-  constructor (color, width, height, x, y)
-  {
-    this.color = color;
-    this.width = width;
+  constructor (color, width, height, x, y, id){
+    this.color  = color;
+    this.width  = width;
     this.height = height;
-    this.x = x;
-    this.y = y;
+    this.left   = x;
+    this.top    = y;
+    this.id     = id; //usage : is for describing class
   }
 }
 
@@ -20,25 +20,22 @@ class Canvas{
     this.renderAll = this.renderAll.bind(this);
     this.addElement = this.addElement.bind(this);
     this.clickElement = this.clickElement.bind(this);
+
+    this.C.addEventListener("click", this.clickElement, event);
   } 
 
   addElement(event) { 
     var x = event.pageX - this.CLeft, 
         y = event.pageY - this.CTop;
     
-    this.elements.push({
-      color  : "#05EFFF", 
-      width  : 150,
-      height : 150, 
-      top    : y ,
-      left   : x
-    });
+    this.elements.push(new CanvasObj("#05EFFF",  150, 150, x,y));
   
     this.renderAll();
   }
   
 
-  clickElement(event){
+  clickElement(event)
+  {
     console.log("event listener is running for canvas");
     var x = event.pageX - this.CLeft,
         y = event.pageY - this.CTop;
