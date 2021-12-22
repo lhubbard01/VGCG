@@ -21,6 +21,7 @@ var drawable = drawClick;
     +"<p>offsetX: " + e.offsetX + " offsetY: " + e.offsetY + "</p>"
     +"<p>Movement X: "+e.movementX+ " movementY: "+e.movementY+"</p>"
     +"<p>layerX: "+e.layerX+" layerY: " + e.layerY + "</p>";
+
   }
 var popup;
 
@@ -56,9 +57,7 @@ function preventer (e){
 </head>
 <body> <!--onauxclick="alerter(event)" oncontextmenu="preventer(event)" onclick="globalStateCheck(event)">-->
 <main >
-  <svg id="drawable_svg" onclick="drawable(event)" onmousemove="MousePosDebugger(event)">
-  </svg>
-  <canvas id="canvas" onclick = "drawableC(event)"></canvas>
+  <canvas id="canvas" onclick="drawableC(event)" onmousemove="MousePosDebugger(event)" width="1000px" height="700px"></canvas>
 
 <div class="UI">
   <section id="sidebar" onmousemove="MousePosDebugger(event)">

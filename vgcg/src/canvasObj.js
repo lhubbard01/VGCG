@@ -1,16 +1,30 @@
-class CanvasObj{
+const WIDTH  = 20;
+const HEIGHT = 20;
+
+class CanvasObj
+{
   constructor (color, width, height, x, y, id){
     this.color  = color;
     this.width  = width;
     this.height = height;
+
     this.left   = x;
     this.top    = y;
+
     this.id     = id; //usage : is for describing class
   }
 }
 
-class Canvas{
-  constructor(canvas){
+
+
+
+
+
+var cnt = 0;
+class Canvas
+{
+  constructor(canvas)
+  {
     this.C = canvas;
     this.CLeft = this.C.offsetLeft;
     this.CTop = this.C.offsetTop;
@@ -21,24 +35,30 @@ class Canvas{
     this.addElement = this.addElement.bind(this);
     this.clickElement = this.clickElement.bind(this);
 
-    this.C.addEventListener("click", this.clickElement, event);
+    this.C.addEventListener("auxclick", this.clickElement, event);
+    
+
   } 
 
-  addElement(event) { 
-    var x = event.pageX - this.CLeft, 
-        y = event.pageY - this.CTop;
+  addElement(event) 
+  {
+
+    var x = event.clientX, 
+        y = event.clientY ;
     
-    this.elements.push(new CanvasObj("#05EFFF",  150, 150, x,y));
-  
+    this.elements.push(
+      new CanvasObj("#05EFFF",  WIDTH, HEIGHT, x, y, "RECT" + cnt)
+    );
+      
+    cnt++;
     this.renderAll();
   }
   
 
   clickElement(event)
   {
-    console.log("event listener is running for canvas");
-    var x = event.pageX - this.CLeft,
-        y = event.pageY - this.CTop;
+    var x = event.clientX, // this.CLeft,
+        y = event.clientY; //- this.CTop;
 
     console.log(x, y);
     this.elements.forEach(
@@ -50,7 +70,7 @@ class Canvas{
             alert('clicked an element');
           }
       });
-    }
+  }
   
 
 
@@ -65,13 +85,15 @@ class Canvas{
     left: 15
   });*/
 
-  renderAll(){
+  renderAll()
+  {
     this.ctx.clearRect(0,0,this.C.width, this.C.height);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(15,20,150,150);
+
     for (let i = 0; i < this.elements.length; ++i)
     {
       let element = this.elements[i];
-        console.log(this.elements[i]);
-        console.log(this.ctx);
       this.ctx.fillStyle = element.color;
       this.ctx.fillRect(element.left,
           element.top,
@@ -79,6 +101,7 @@ class Canvas{
           element.height
       );
 
+      this.ctx.fillText(element.id, element.left, element.top);
     }
   }
 }
