@@ -1,15 +1,154 @@
 //GEOMETRIC PRIMITIVES
-function promptGen(list_of_name_to_default){
-  alert("promt generate");
-  var gathered_values = [];
-  for (let el in list_of_name_to_default)
+
+const WIDTH  = 50;
+const HEIGHT = 50;
+
+class CanvasObj
+{
+  constructor (color, width, height, x, y, type, geom_type, id)
   {
-      gathered_values.push(prompt(el[0], el[1]));
+    this.color  = color;
+    this.width  = width;
+    this.height = height;
+
+    this.left   = x;
+    this.top    = y;
+
+    this.geom_type = geom_type;
+    this.type      = type;
+    this.id        = id; //usage : is for describing class
+  }
+}
+
+
+var cnt = 0;
+class Canvas
+{
+  constructor(canvas)
+  {
+    this.C = canvas;
+    this.CLeft = this.C.offsetLeft;
+    this.CTop = this.C.offsetTop;
+    this.ctx = this.C.getContext("2d");
+    this.elements = [];
+
+    this.renderAll = this.renderAll.bind(this);
+    this.addElement = this.addElement.bind(this);
+    this.clickElement = this.clickElement.bind(this);
+
+    this.C.addEventListener("auxclick", this.clickElement, event);
+    this.checkIfRect = this.checkIfRect.bind(this);    
+
+  } 
+
+  checkIfRect(ev)
+  {
+    //checks for if an element is being clicked on
+    let module_rects = this.elements;
+    for (let i = 0; i < module_rects.length; ++i)
+    {
+      let localrect = module_rects[i];
+      console.log(localrect);
+      console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
+      if (checkLoc(ev, localrect) && localrect.geom_type == "RECT")
+      {
+        console.log("found a match");
+        return {found: true, rect: localrect};
+      }
+
+    }
+    return {found: false, rect: null};
+  }
+  
+
+  addElement(event) 
+  {
+
+    var x = event.clientX, 
+        y = event.clientY ;
+    var OBJ = drawClick(event) ;
+    if (OBJ){
+      this.elements.push( OBJ);
+      cnt++;
+      this.renderAll();
+    }
+  } 
+
+  clickElement(event)
+  {
+    var x = event.clientX, // this.CLeft,
+        y = event.clientY; //- this.CTop;
+
+    console.log(x, y);
+    let outcome = this.checkIfRect(event), element;
+    if(outcome.found){ 
+      element = outcome.rect;
+      //element.auxclick();
+      alert('clicked an element: ', element);
+    }
+  }
+  
+
+
+
+
+
+  /* NOTE code adapted from stack overflow adding callbacks to canvas objects
+  Add element.
+  elements.push({
+    colour: '#05EFFF',
+    width: 150,
+    height: 100,
+    top: 20,
+    left: 15
+  });*/
+
+  renderAll()
+  {
+    this.ctx.clearRect(0,0,this.C.width, this.C.height);
+
+    for (let i = 0; i < this.elements.length; ++i)
+    {
+      let element = this.elements[i];
+      console.log(element);
+      if (element.geom_type == "RECT"){
+        this.ctx.fillStyle = element.color;
+        this.ctx.fillRect(element.left,
+          element.top,
+          element.width,
+          element.height);
+
+        this.ctx.fillText(element.id + " : " + element.type, element.left, element.top);
+        }
+      
+      else if (element.geom_type == "LINE")
+      {
+        this.ctx.moveTo(element.pointA.x, element.pointA.y);
+        this.ctx.lineTo(element.pointB.x, element.pointB.y, 10,10);
+        this.ctx.stroke();
+      }
+
+    }
+  }
+}
+
+
+var C;
+function drawableC(event){
+  C.addElement(event);
+}
+function promptGen(count, list_of_name_to_default)
+{
+  var gathered_values = [];
+  for (let i = 0; i < count; ++i)
+  {
+      gathered_values.push(prompt(list_of_name_to_default[i]));// el[1]));
   }
   return gathered_values;
 }
 
-function htmlel(type){
+function htmlel(type)
+{
   let loc = document.createElement(type);
   for (let i = 1; i < arguments.length; i++){
     switch(i){
@@ -28,10 +167,9 @@ function htmlel(type){
 
 
 
-function prompter(dims){
-  let args = []
-  for (let i = 0; i < dims; i++)
-    args.push(["dim" + i.toString(),100]);
+function prompter(dims, strings)
+{
+
 /*
   let prompter = htmlel("div", "prompter", "dims");
 
@@ -40,7 +178,7 @@ function prompter(dims){
     prompter.appendChild(htmlel("input", "promptrow", "dim" + i.toString(), {"type" : "text"}));
   }
   document.body.appendChild(prompter);*/
-  let out = promptGen(args);
+  let out = promptGen(dims, strings);
   return out;
 }
 
@@ -62,7 +200,7 @@ var lineCount = 0;
 
 
 
-
+/*
 class SVG_HTML{
   constructor(Name, cb_list){
 
@@ -93,7 +231,7 @@ function setColor(objId, color){
   console.log(obj);
   obj.style.fill = color;
 }
-
+*/
 function getInput(promptstr){
   let new_in = prompt(promptstr);
   return new_in;
@@ -102,25 +240,28 @@ function getInput(promptstr){
 function updateAttr(id, obj){
 	ID_LOOKUP[id] = obj;
 }
-class Line extends SVG_HTML{
-  constructor(x1,y1,x2,y2,n1,n2,name){
-    super(name);
+
+
+class Line extends CanvasObj
+{
+  constructor(x1,y1,x2,y2,n1,n2,name)
+  {
+    console.log(x1,y1,x2,y2,n1,n2,name);
+    super("black", 5,5, 0,0, "line", "LINE", name,);
     LOG("making line!");
     this.pointA = new Point(x1,y1,name+"A");
     this.pointB = new Point(x2,y2,name+"B");
-    this.render = this.render.bind(this);
-    this.Name = name;
     this.originalA = n1;
     this.originalB = n2;
     this.attrs = {
       pointA_setcolor: () => {
-        setColor(this.originalA.Name, "green");}, 
+        setColor(this.originalA.id, "green");}, 
       pointB_setcolor: () => {
-        setColor(this.originalB.Name, "green");},
+        setColor(this.originalB.id, "green");},
       setA_in: () => { 
-        let newIns = Number(getInput("new input count for " + this.originalA.Name + " : "));
+        let newIns = Number(getInput("new input count for " + this.originalA.id + " : "));
         this.originalA.outs = newIns;
-				updateAttr(this.originalA.Name, this.originalA);
+				updateAttr(this.originalA.id, this.originalA);
         console.log(this);
         this.update("A", newIns);}
     }
@@ -128,34 +269,39 @@ class Line extends SVG_HTML{
     this.update = this.update.bind(this);
     this.remove= this.remove.bind(this);
   }
-  
 
-   init(){
+
+   init()
+   {
      console.log(this);
         let data = {
           from:{
-            Name: this.originalA.Name,
+            Name: this.originalA.id,
             count: this.originalA.outs
           }, 
           to:{
-            Name: this.originalB.Name,
+            Name: this.originalB.id,
             count: this.originalB.ins
           }
         };
 
 
       send(data, "conn");
+      lineCount++;
      console.log(this);
   }
+
   
-  remove(){
+
+  remove()
+  {
     let data = { 
       from: { 
-        Name: this.originalA.Name,
+        Name: this.originalA.id,
         count: this.originalA.outs
       },
       to: {
-        Name: this.originalB.Name,
+        Name: this.originalB.id,
         count: this.originalB.ins
       }
     };
@@ -164,80 +310,55 @@ class Line extends SVG_HTML{
      console.log(this);
   }
   
-  update(AorB, update){
+  
+  
+  update(AorB, update)
+  {
     this.remove(); 
     this.init();
   }
 
-  render(callback, type){
-    svgCanvas = document.getElementById("drawable_svg");
-    let currentState = svgCanvas.innerHTML
-    if (verbose > 0)
-      LOG("render line!");
-    let newLine = "<line x1=\"" + this.pointA.x.toString() + "\" y1=\"" + this.pointA.y.toString()
-      + "\" x2 = \"" + this.pointB.x.toString() + "\" y2 = \"" + this.pointB.y.toString() 
-      + "\" stroke=\"black\" class=\"svgline\" id=\"" + this.Name + "\" >";
-      //+ callback + "=\"" + type + "(event,  " + JSON.stringify(this.attrs) + ")\">";
 
-    
-    console.log(newLine);
-    appendHTMLState(svgCanvas, newLine);
-    let localline = document.getElementById(this.Name);
-    localline.addEventListener("auxclick", (event) => { Xr( event, this); });
-    this.html = localline;
-  lineCount++;
-  }
-
-
-};
-
+}
 //CONTAINER CLASS FOR DIRECT DOM RENDER // holds state for the modules locally
-class Rect extends SVG_HTML{
-  constructor(x,y,size,color, title, Name){
-    super(Name);
-    this.x = x;
-    this.y = y;
-    this.size = size;
-    this.color = color;
-    this.title = title;
-    this.Name  = Name;
-    this.render = this.render.bind(this);
+class Rect extends CanvasObj{
+  constructor(color, width, height, x,y, type, id)
+  {
+    super(color, width, height, x, y, type, "RECT",  id);
+    this.register = this.register.bind(this);
   }
-  render(ptr){
-    svgCanvas = document.getElementById("drawable_svg");
-    let newRect = "<rect x=\"" + this.x.toString() + "\" y=\"" + this.y.toString() 
-    + "\" height=\"" + this.size.toString() + "\" width=\"100\""
-    + "id=\"" + this.Name + "\" class=\"moduleDiv\" fill=\"" + this.color + "\"/>";
-    
-		let textrect = "<text x = \"" + this.x.toString() +"\" y=\""+this.y.toString() + "\">" + this.Name +"\n" + this.title + "</text>";
-    
-		appendHTMLState(svgCanvas, textrect + "\n" + newRect );
 
-    this.html = newRect;
-    ID_LOOKUP[this.Name] = ptr;
+
+
+
+  
+  register(ptr)
+  {
+    ID_LOOKUP[this.id] = ptr;
   }
 }
 
 
-function genRect(ev, title, Name, color)
+function genRect(ev, type, id, color)
 {
-  var r = new Rect(ev.offsetX, ev.offsetY, 100, color, title, Name);
-  r.render();
+  let size = 100;
+  var r = new Rect(color, size, size, ev.offsetX, ev.offsetY, type, id);
+  //r.render();
   LOG(r);
   return r;
 }
 
 
 
-function checkLocDOM(ev, obj)
+function checkLoc(ev, obj)
 {
   if(
-      ((ev.offsetX > obj.x.baseVal.value)
-        && (ev.offsetX <= (obj.x.baseVal.value + obj.width.baseVal.value))
+      ((ev.offsetX > obj.left)
+        && (ev.offsetX <= (obj.left + obj.width))
         )
       && (
-        (ev.offsetY > obj.y.baseVal.value ) 
-        && (ev.offsetY <= (obj.y.baseVal.value + obj.height.baseVal.value))
+        (ev.offsetY > obj.top) 
+        && (ev.offsetY <= (obj.top +  obj.height))
       )
     )
     
@@ -261,23 +382,6 @@ function checkLocHTML(ev, obj)
   else return false;
 }
 
-function checkIfRect(ev)
-{
-  //checks for if an element is being clicked on
-  module_rects= document.getElementsByClassName("moduleDiv");
-  for (let i = 0; i < module_rects.length; ++i)
-  {
-    let localrect = module_rects.item(i);
-    console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
-    if (checkLocDOM(ev, localrect))
-    {
-      console.log("found a match");
-      return {found: true, rect: localrect};
-    }
-
-  }
-  return {found: false, rect: null};
-}
 
 function remove(ev){
   // if element is clicked, remove it from dom and server
@@ -306,11 +410,13 @@ function connect(ev)
   
   //connect module 1 to module click 2. describes a path of information flow and is used to parameterized weight matrices for model backend
   //check if a rectangle is beneath the click. if so, and if clicked previously and rect stored, announce connection to server
-  var maybeEl = checkIfRect(ev);
-
+  console.log("INSIDE CONNECT IS");
+  var maybeEl = C.checkIfRect(ev);
+  console.log("MAYBE ELEMENT IS ", maybeEl);
   LOG(maybeEl);
   if (maybeEl.found)
   {
+    console.log("in first")
       if (!p1){
         console.log("p1");
         console.log(ev,maybeEl);
@@ -324,13 +430,18 @@ function connect(ev)
         if ( verbose > 1) 
           LOG("part 2 conn");
         p2 = new Point(ev.offsetX, ev.offsetY, maybeEl.rect.id);
-        let out = new Line(p1.x, p1.y, p2.x, p2.y, ID_LOOKUP[connEl.id], ID_LOOKUP[maybeEl.rect.id], connEl.id + maybeEl.rect.id);
-        out.init();
-        out.render("onauxclick", "Xr");
-        connEl = null; p1 = null; p2 = null; maybeEl = null;
-      }
+        let out = new Line(p1.x, p1.y, 
+            p2.x, p2.y,
+            ID_LOOKUP[connEl.id], ID_LOOKUP[maybeEl.rect.id], 
+            connEl.id + maybeEl.rect.id);
 
+
+        out.init();
+        connEl = null; p1 = null; p2 = null; maybeEl = null;
+        return out;
+      }
   }
+    console.log("exit connect");
 
 }
 var x = genRect;
@@ -339,7 +450,8 @@ LOG(x);
 
 class Point{
   // A maintainer of click states for render later
-  constructor(x,y,Name){
+  constructor(x,y,Name)
+  {
     this.x = x;
     this.y = y;
     this.Name = Name;
@@ -370,27 +482,28 @@ function input(ev,th){
 
 class Module extends Rect
 {
-  constructor(ev, mType, isParametric, isNative, NamePre)
+  constructor(ev,  mType, isParametric, isNative, NamePre)
   {
-    let Name = NamePre + globalN.toString();  globalN++;
-
+    let id = NamePre + globalN.toString();
+    globalN++;
+    let width = 100;
+    let height = 100;
     let color = isParametric ? "red" : "blue";
-    super(ev.offsetX, ev.offsetY, 100, color, mType, Name);   
-
-
-    this.Name         = Name;
+    super(color, width, height, ev.offsetX, ev.offsetY, mType, id);   
     this.isParametric = isParametric;
     this.isNative     = isNative;
-    this.mType        = mType;
     this.hyperp       = {};
-    this.render(this);
+    this.register(this);
 
 
-    if (isParametric){
-      let ins_outs = prompter(2);
+    if (isParametric)
+    {
+      let ins_outs = prompter(2, ["in_features","out_features"]);
       this.ins = ins_outs[0];
       this.outs = ins_outs[1];
-    } else { 
+    } 
+    else 
+    { 
       this.ins = 500;
       this.outs = 500;
     };
@@ -400,17 +513,25 @@ class Module extends Rect
   };
 
   sender(signal_type){
-    let data = {isParametric: this.isParametric,
-    isNative: this.isNative,
-    mType: this.mType,
-    Name: this.Name,
-    hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
+    let data = {
+      isParametric: this.isParametric,
+      isNative: this.isNative,
+      mType: this.mType,
+      Name: this.id,
+
+    hyperp: JSON.stringify(
+    {
+      in_features: this.ins, 
+      out_features: this.outs
+      })
     };
 
     console.log(data);
-    if (signal_type == "ADD"){
+    if (signal_type == "ADD")
+    {
 			send(data, "add");
-		} else if (signal_type == "UPDATE") { 
+		} else if (signal_type == "UPDATE") 
+    { 
 			send(data, "update"); 
 		}
   }
@@ -418,7 +539,7 @@ class Module extends Rect
 
 class Linear extends Rect{
   constructor(ev){ 
-    let Name = "A" + globalN.toString();
+    let id = "A" + globalN.toString();
     super(ev.offsetX, ev.offsetY, 100, "red", "Linear", Name);   
     this.Name = Name;
     globalN++;
@@ -449,15 +570,19 @@ class Linear extends Rect{
   }
 }
 
-function linear(ev)
+
+
+// Linear Transformation of input, defined through dimenion of feature space between other modules
+function linear(ev){     return new Module(ev, "Linear", true, true, "A");  }
+function bilinear(ev){   return new Module(ev, "Bilinear", true, true, "Bilinear");}
+function relu(ev){       return new Module(ev, "ReLU", false, true, "ReLU");}
+function sigmoid(ev){    return new Module(ev, "Sigmoid", false, true, "Sigmoid"); }
+function softmax(ev){    return new Module(ev, "Softmax", false, true, "Softmax");}
+function leakyrelu(ev) { return new Module(ev, "LeakyReLU", false, true, "LeakyReLU"); }
+function tanh(ev) {      return new Module(ev, "Tanh", false, true, "TanH"); }
+   
+function update(ev)
 {
-  // Linear Transformation of input, defined through dimenion of feature space between other modules
-  let l = new Linear(ev);
-}
-function bilinear(ev){
-  let bl = new Module(ev, "Bilinear", true, true, "B");
-}
-function update(ev){ 
 	let maybeRect = checkIfRect(ev); 
 	if (maybeRect.found ) {
 		ID_LOOKUP[maybeRect.rect.id].sender("UPDATE");
@@ -509,9 +634,9 @@ async function send(data_in, signal_type)
     console.log("completed logging request");
 }
 
-class ReLU extends Rect{
+class ReLU extends Module{
   constructor(ev){
-    let Name = "R" + globalN.toString();
+    let id = "R" + globalN.toString();
     super(ev.offsetX, ev.offsetY, 100, "blue", "ReLU", Name);   
     this.Name = Name;
     globalN++;
@@ -532,7 +657,6 @@ class ReLU extends Rect{
     Name: this.Name,
     hyperp: JSON.stringify({in_features: this.ins, out_features: this.outs})
     };
-
     console.log(data);
     if (signal_type == "ADD"){
 			send(data, "add");
@@ -541,11 +665,6 @@ class ReLU extends Rect{
 		}
   }
 }
-function relu(ev){
-  let r = new ReLU(ev);
-  // ReLU Module, sends info to model backend
-}
-   
 //DOM STATE MANAGEMENT
 function addField(object, text){
   object.addTextNode(text);
@@ -606,10 +725,6 @@ function registerSig (ev){
   send(dataIn, "signal");
 }
 
-function sigmoid(ev){    let s = new Module(ev, "Sigmoid", false, true, "S");}
-function softmax(ev){    let s = new Module(ev, "Softmax", false, true, "S");}
-function leakyrelu(ev) { let l = new Module(ev, "LeakyReLU", false, true, "L"); }
-function tanh(ev) {      let t = new Module(ev, "Tanh", false, true, "T"); }
 
 
 var dragging = null; //helper for moving around selected elements
@@ -665,7 +780,7 @@ function drawClick(ev)
 
 
 
-  ID_TO_CB[drawablecbN](ev);
+  return ID_TO_CB[drawablecbN](ev);
 }
 
 setTimeout(300, ()=>{document.body.addEventListener("mouseUp", ID_TO_CB[drawableN]);});

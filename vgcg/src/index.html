@@ -5,7 +5,7 @@
   <title>App 1</title>
   <link rel="stylesheet" href="./style.css">
 <script type="text/javascript" src="./drawing.js"></script>
-<script type="text/javascript" src="./canvasObj.js"></script>
+<!--<script type="text/javascript" src="./canvasObj.js"></script>-->
 <script>
 
 var drawable = drawClick;
@@ -55,7 +55,7 @@ function preventer (e){
   
 </script>
 </head>
-<body> <!--onauxclick="alerter(event)" oncontextmenu="preventer(event)" onclick="globalStateCheck(event)">-->
+<body onauxclick="alerter(event)" oncontextmenu="preventer(event)" onclick="globalStateCheck(event)">
 <main >
   <canvas id="canvas" onclick="drawableC(event)" onmousemove="MousePosDebugger(event)" width="1000px" height="700px"></canvas>
 
