@@ -516,7 +516,7 @@ class Module extends Rect
     let data = {
       isParametric: this.isParametric,
       isNative: this.isNative,
-      mType: this.mType,
+      mType: this.type,
       Name: this.id,
 
     hyperp: JSON.stringify(
