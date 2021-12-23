@@ -78,7 +78,7 @@ class GraphBuild:
 
 
 
-  def addToConn(self, mod):
+  def addToConn(self, mod, dMods):
     self.dConn[mod.name] = {
       "ins": mod.ins, 
       "outs": mod.outs, 
@@ -98,18 +98,22 @@ class GraphBuild:
       self.addToSym("X","X")
 
 
-    
-
     if len(mod.ins ) > 1:
+      s = 0
       #requires concat for the inputs
       #name of connecion, line being constructed
       name_ct, line = self.moduleInput(mod.ins) 
 
+
+
+
       sym =  mod.name+"Out"
       self.addToSym(mod.name,sym)
-    
       line +=  "\n"+ self.indent * 2 * " " + sym +" = self." + mod.name + "(" + name_ct +")"
-    
+      for el in mod.ins:
+        print("ELEMENT: " , el, " OUTPUTS: ", dMods[el].outs[mod.name])
+        s += int ( dMods[el].outs[mod.name] ) #["outs"]
+      self.reprs[mod.name].hypers["in_features"] = s
     else:
       #otherwise vanilla serial
       line = mod.name + "Out = self." + mod.name + "(" + self.getInSym(list(mod.ins.keys())[0]) + ")"
@@ -124,7 +128,9 @@ class GraphBuild:
     self.not_done.pop(self.not_done.index(mod.name))
     
     # repr is a dictionary of ModuleIntermediateRepr, used in init_call to construct "new" object and return string 
-    self.model_str += self.indent * 2 * " " + "self." + mod.name + " = " + self.init_call(self.reprs[mod.name]) + "\n"
+
+
+    self.model_str += self.indent * 2 * " " + "self." + mod.name + " = " + self.init_call(self.reprs[mod.name], ) + "\n"
     
     #This is the forward pass string 
     self.fwd_str   += self.indent * 2 * " " + self.dConn[mod.name]["repr_fwd"] + "\n"
@@ -142,21 +148,21 @@ class GraphBuild:
         curr = dMod[mod]
         break
 
-    self.addToConn(curr)
+    self.addToConn(curr, dMod)
 
     while curr:
       #print("Looping... ",curr)
       if dMod[curr.name].outs :
         for mod in dMod[curr.name].outs:
           print(f"mod {mod} from {curr.name} outs")
-          self.addToConn( dMod[mod])
+          self.addToConn( dMod[mod], dMod)
       print("exit on " + curr.name)
       
 
       if len(self.not_done) > 0 :
         print(self.not_done)
         curr = dMod[self.not_done[0]];
-        self.addToConn( curr);
+        self.addToConn(curr, dMod)
 
       else: 
         break

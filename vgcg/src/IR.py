@@ -92,18 +92,28 @@ class ModuleIntermediateRepr:
     
     if self.isParametric and len(list(self.hypers.keys())) != 0:
       in_kv_pair = seek("in_", self.hypers)
+
       module_builder_string += str(in_kv_pair[0]) + " = " + str(in_kv_pair[1]) + ", "
       print(module_builder_string)
+
       out_kv_pair = seek("out_", self.hypers)
+
       module_builder_string += str(out_kv_pair[0]) + " = " + str(out_kv_pair[1]) + ", "
       print(module_builder_string)
 
+
     for hparam in self.hypers.keys():
+
       if "out_" not in hparam and "in_" not in hparam:
         module_builder_string += hparam + " = " + str(self.hypers[hparam]) + ", "
+
     if len(list(self.hypers.keys())) > 0 and self.isParametric:
       module_builder_string = module_builder_string[:-2] + ")"
-    else: module_builder_string += ")"
+
+
+    else:
+      module_builder_string += ")"
+
     return module_builder_string
     #exec("obj = " + module_builder_string, globals(), locals())
     #return obj
