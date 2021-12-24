@@ -103,10 +103,6 @@ class GraphBuild:
       #requires concat for the inputs
       #name of connecion, line being constructed
       name_ct, line = self.moduleInput(mod.ins) 
-
-
-
-
       sym =  mod.name+"Out"
       self.addToSym(mod.name,sym)
       line +=  "\n"+ self.indent * 2 * " " + sym +" = self." + mod.name + "(" + name_ct +")"
@@ -116,6 +112,15 @@ class GraphBuild:
       self.reprs[mod.name].hypers["in_features"] = s
     else:
       #otherwise vanilla serial
+      print("IS NORMAL VERSION, here is mod.ins, ", mod.ins)
+      print(type(mod.ins))
+      key = list(mod.ins.keys()) 
+      print(key)
+      if not "X" in key: 
+        
+        self.reprs[mod.name].hypers["in_features"] = int(dMods[key[0]].outs[mod.name])
+
+      print("success!")
       line = mod.name + "Out = self." + mod.name + "(" + self.getInSym(list(mod.ins.keys())[0]) + ")"
       self.addToSym(mod.name,mod.name+"Out") #add to symbol table
     
