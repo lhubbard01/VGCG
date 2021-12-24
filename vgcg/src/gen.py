@@ -32,10 +32,12 @@ from api import ApiSignalHandler
 
 
 class ModelCache:
+
   def __init__(self):
     self.cache = {}
+    self.built_cache = {} 
     self.conns = {}
-
+    self.built_cache_as_IR = {}
 
     self.API = ApiSignalHandler( {
       "add":self.add,
@@ -68,6 +70,9 @@ class ModelCache:
       print(self.conns)
       sender = message["from"]
       recvr  = message["to"]
+      if sender["Name"] == recvr["Name"]:
+        print("sending to self! treated as a user error, continuing...")
+        return
       #There might be a better way to represent the data packets. Maybe just make a class?
       #updates the outut list to disinclude the receiver of this connection 
       self.conns[sender["Name"]] ["outs"] = [
@@ -146,9 +151,12 @@ class ModelCache:
         print("reset successfully executed")
 
       elif message["signal"] == "build":
-        dict_modules=self.buildConns() 
-        self.builder = GraphBuild(self.cache, indent = 4)
+        #creates connections -> self.built_cache, and then corresponding intermediate representation -> self.built_cache_as_IR
+        dict_modules = self.buildConns() 
+        self.builder = GraphBuild(self.built_cache_as_IR, indent = 4)
+
         dconns = self.builder.buildModuleGraph(dict_modules)
+
         print(dconns)
 
         ft = FileTemplate()
@@ -169,13 +177,14 @@ class ModelCache:
                           name,
                           buildConnsDict(value["ins"]), 
                           buildConnsDict(value["outs"]))
-      
-      self.cache[name] = {
+      self.built_cache[name] = {
           **self.cache[name],  
           **dMod[name].dr
         }
 
-      self.cache[name] = ModuleIntermediateRepr(**self.cache[name])
+      
+
+      self.built_cache_as_IR[name] = ModuleIntermediateRepr(**self.built_cache[name])
 
     print(dMod)
     return dMod
