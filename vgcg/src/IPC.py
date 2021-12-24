@@ -19,10 +19,9 @@ import datetime as dt
 
 
 
-VERBOSE = False
 IPC_FIFO_MODEL = "model_pipe"
 
-from loggingConf import CountLogger, init_logger
+from loggingConf import CountLogger, init_logger, VERBOSE
 
 logger = init_logger(__file__, count = 1)
 def prepend(*args):
@@ -71,10 +70,10 @@ class FifoModel:
   def __call__(self, msg):
     self.write(msg)
 
-
   def write(self, msg : (bytes, str)):
-    
-    logger.info("MESSAGE: ", type(msg), msg, "\nPIPE: ", type(self.pipe))
+    global VERBOSE
+    if VERBOSE :
+      logger.info("MESSAGE: ", type(msg), msg, "\nPIPE: ", type(self.pipe))
     if not isinstance(msg, bytes):
       if not isinstance(msg,str):
         os.write(self.pipe, bytes(str(msg), "utf-8"))
@@ -94,13 +93,22 @@ def moveToModel(msg):
 
 exec_history = []
 symtable = {}
+VERBOSE = False
 def log_input(msg, *args):
-  print(msg, args)
+  
+  
+  
+
+
+  global VERBOSE
+  if VERBOSE:
+    print(msg, args)
   #global logger
   preface_str = ""
   for arg in args:
     preface_str += str(arg) + " "
-  logger.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
+  
+  if VERBOSE: logger.info(preface_str, "LOGGING: ", msg, " type: ", type(msg))
   return msg
 
 def handle_message_runtime( msg_dict):
@@ -150,14 +158,12 @@ def re_match(msg):
 
 
 def process_message(msg):
-  print(msg)
   try:
     msgdict = None
     try: 
       msgdict = json.loads(msg)
 
       logging.debug(msgdict)
-      print("this is the message dict", msgdict    ,"\nthis is the original message", msg)
 
 
     except Exception as e:
@@ -206,6 +212,7 @@ class IPC_Handler:
     
     
     os.mkfifo(IPC_FIFO_NAME_A)
+    global VERBOSE
     try:
       fifo_a = os.open(os.path.join(loc, IPC_FIFO_NAME_A), os.O_RDONLY | os.O_NONBLOCK)
       logger.info("pipe a is opened")
@@ -243,11 +250,12 @@ class IPC_Handler:
           while True:
             if (fifo_a, select.POLLIN) in poll.poll(1000):
               msg      = get_message(fifo_a)
-              logger.info("--------received from JS--------");logger.info("    " + msg.decode("utf-8"))
-              logger.info("\n\n\n\n");
+              if VERBOSE:
+                logger.info("--------received from JS--------");logger.info("    " + msg.decode("utf-8"))
+                logger.info("\n\n\n\n");
               outbound = process_message(msg)
   
-              logger.info("-------writing------", outbound)
+              if VERBOSE: logger.info("-------writing------", outbound)
               os.write(fifo_b, bytes(str(outbound),"utf-8"))
               
 

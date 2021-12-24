@@ -67,13 +67,19 @@ logger.info("successful registration of exit calls")
 
 logging.info("launching IPC Python Main...")
 PATH_IPC = "./IPC.py"
+
 r_append( launch("python3 " + PATH_IPC))
 logging.info("success on Python Main Launch!")
+
+
 logging.info("launching IPC node...")
 PATH_NODE = "./jsipc.js"
 r_append( launch("node " + PATH_NODE))
 logging.info("success on Node IPC Launch!")
+
+
 logging.info("IPC protocol up between node and python3!")
+
 
 logging.info("IPC protocol pending on ModelReader...")
 print("launching IPC model reader...")

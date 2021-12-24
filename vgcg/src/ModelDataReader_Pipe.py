@@ -5,7 +5,7 @@ import select
 import struct
 from message import Msg
 from gen import ModelCache
-from loggingConf import CountLogger, init_logger
+from loggingConf import CountLogger, init_logger, VERBOSE
 
 IPC_FIFO_MODEL = "model_pipe"
 
@@ -42,30 +42,34 @@ class ModelIPC_Writer:
 
     try:
       self.R=os.open(os.path.join(loc, IPC_FIFO_MODEL), os.O_RDONLY | os.O_NONBLOCK)
-      
-      logger.info("MODEL: model pipe is opened")
+      global VERBOSE
+      if VERBOSE:
+        logger.info("MODEL: model pipe is opened")
 
       try:
         poll = select.poll()
         poll.register(self.R, select.POLLIN)
-
-        logger.info("registered to the poll, entering loop")
+        
+        if VERBOSE:
+          logger.info("registered to the poll, entering loop")
 
         try:
           while True:
             if (self.R, select.POLLIN) in poll.poll(1000):
 
 
-              logger.info("PYTHON [MODEL]| ----MODEL MESSAGE RECV----")
+              if VERBOSE:
+                logger.info("PYTHON [MODEL]| ----MODEL MESSAGE RECV----")
               msg = get_message(self.R)
               pkt = self.proc_json(msg)
               pkt["pydict"] =  self.process_nested_dicts(pkt["data"])
 
-              logger.info( pkt, "\n STARTING CACHE RECEIVE")
+              if VERBOSE:
+                logger.info( pkt, "\n STARTING CACHE RECEIVE")
               assert isinstance(pkt, dict)
               self.cache.recv( pkt , asdict = True)
               #pImsg.decode("utf-8"))
-              logger.info("logged message dict " + str(self.cache))
+              if VERBOSE: logger.info("logged message dict " + str(self.cache))
               #print("PYTHON [MODEL]: logged message dict " + str(self.cache))
 
         except Exception as e:
@@ -88,9 +92,10 @@ class ModelIPC_Writer:
 
   def proc_json(self, msg):
     #exists to process nested string versions of parameters from frontend packets
+    global VERBOSE
     try:
       out = json.loads(msg)
-      logger.info(str(msg))
+      if VERBOSE: logger.info(str(msg))
       return out
 
     except Exception as e: 
