@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="./style.css">
 <script type="text/javascript" src="./drawing.js"></script>
 <!--<script type="text/javascript" src="./canvasObj.js"></script>-->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
 <script>
 
 var drawable = drawClick;
@@ -48,16 +51,30 @@ function globalStateCheck(e){
 
 
   };
-function preventer (e){
-  e.preventDefault();
-}
+//function preventer (e){
+  //e.preventDefault();
+//}
 
   
 </script>
 </head>
-<body onauxclick="alerter(event)" oncontextmenu="preventer(event)" onclick="globalStateCheck(event)">
+<body>
 <main >
-  <canvas id="canvas" onclick="drawableC(event)" onmousemove="MousePosDebugger(event)" width="1000px" height="700px"></canvas>
+<h4>Right click on rect for context menu.</h4>
+<div id=canvasContainer>
+  <ul id=contextMenu><li>Test</li></ul>
+</div>
+<!--<div id = "contextMenu" class = "context-menu" style = "display: None">-->
+<ul>
+  <li>change layer</li>
+  <li>delete layer</li>
+  <li>
+</ul>
+
+
+
+
+<canvas id="canvas" onclick="drawableC(event)" onmousemove="MousePosDebugger(event)" width="1000px" height="700px"></canvas>
 
 <div class="UI">
   <section id="sidebar" onmousemove="MousePosDebugger(event)">
@@ -168,5 +185,49 @@ function init_sidebar_options(){
 
   C = new Canvas(canvas);
 
-	</script>
+	
+// context menu for canvas
+var canvas=document.getElementById("canvas");
+var ctx=canvas.getContext("2d");
+var cw=canvas.width;
+var ch=canvas.height;
+function reOffset(){
+  var BB=canvas.getBoundingClientRect();
+  offsetX=BB.left;
+  offsetY=BB.top;        
+}
+var offsetX,offsetY;
+reOffset();
+window.onscroll=function(e){ reOffset(); }
+window.onresize=function(e){ reOffset(); }
+$menu = $("#contextMenu");
+$('#contextMenu').on('click','li',function(e){
+  // hide the context menu
+  showContextMenu();
+  console.log(this);
+  CB_LU[TYPE.toLowerCase()][parseInt(this.id)]();
+  alert('Context selection: '+$(this).text());
+});
+//console.log(menu);
+showContextMenu();
+
+canvas.addEventListener('mousedown', handleMouseDown, false);  
+canvas.addEventListener('contextmenu', handleContextMenu, false);  
+
+function handleMouseDown(e)
+{
+  // hide the context menu
+  showContextMenu();
+  C.menu_active = false;
+}
+
+function handleContextMenu(e)
+{
+  var x = parseInt(e.clientX-offsetX);
+  var y = parseInt(e.clientY-offsetY);
+  e.preventDefault();
+  e.stopPropagation();
+  C.clickElement(e, x, y);
+}
+  </script>
 </html>

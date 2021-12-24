@@ -1,9 +1,10 @@
-const WIDTH  = 20;
-const HEIGHT = 20;
+const WIDTH  = 50;
+const HEIGHT = 50;
 
 class CanvasObj
 {
-  constructor (color, width, height, x, y, id){
+  constructor (color, width, height, x, y, id)
+  {
     this.color  = color;
     this.width  = width;
     this.height = height;
@@ -14,10 +15,6 @@ class CanvasObj
     this.id     = id; //usage : is for describing class
   }
 }
-
-
-
-
 
 
 var cnt = 0;
@@ -122,8 +119,8 @@ function drawableC(event){
     this.cb_list += ev; // of form str(ev), str(cb) // added raw to html
   }
 }
-
-class Line extends CObj{
+*/
+class Line extends CanvasObj{
   constructor(x1,y1,x2,y2,n1,n2,name)
   {
     super(name);
@@ -204,7 +201,8 @@ class Line extends CObj{
     this.init();
   }
 
-  render(callback, type){
+  render(callback, type)
+  {
     if (verbose > 0)
       LOG("render line!");
     ctx.moveTo(this.pointA.x, this.pointA.y);
@@ -215,7 +213,6 @@ class Line extends CObj{
     ctx.closePath();
     
     localline.addEventListener("auxclick", (event) => { Xr( event, this); });
-    this.html = localline;
   lineCount++;
   }
 

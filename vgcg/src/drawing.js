@@ -1,4 +1,5 @@
 //GEOMETRIC PRIMITIVES
+var TYPE = null, ptr = null;
 
 const WIDTH  = 50;
 const HEIGHT = 50;
@@ -36,11 +37,12 @@ class Canvas
     this.addElement = this.addElement.bind(this);
     this.clickElement = this.clickElement.bind(this);
 
-    this.C.addEventListener("auxclick", this.clickElement, event);
+    //this.C.addEventListener("context-menu", this.clickElement, event);
     this.checkIfRect = this.checkIfRect.bind(this);    
-
+    this.menu_active = false;
   } 
 
+  
   checkIfRect(ev)
   {
     //checks for if an element is being clicked on
@@ -48,11 +50,8 @@ class Canvas
     for (let i = 0; i < module_rects.length; ++i)
     {
       let localrect = module_rects[i];
-      console.log(localrect);
-      console.log(ev.offsetX, localrect.x,ev.offsetY, localrect.y, localrect);
       if (checkLoc(ev, localrect) && localrect.geom_type == "RECT")
       {
-        console.log("found a match");
         return {found: true, rect: localrect};
       }
 
@@ -63,6 +62,8 @@ class Canvas
 
   addElement(event) 
   {
+    if (this.menu_active)
+      return;
 
     var x = event.clientX, 
         y = event.clientY ;
@@ -73,18 +74,18 @@ class Canvas
       this.renderAll();
     }
   } 
-
-  clickElement(event)
+  clickElement(event, x, y)
   {
-    var x = event.clientX, // this.CLeft,
-        y = event.clientY; //- this.CTop;
-
+    //var x = event.clientX, // this.CLeft,
+        //y = event.clientY; //- this.CTop;
     console.log(x, y);
     let outcome = this.checkIfRect(event), element;
     if(outcome.found){ 
+      TYPE = outcome.rect.type;
       element = outcome.rect;
-      //element.auxclick();
-      alert('clicked an element: ', element);
+      ptr = element;
+      showContextMenu(element,x,y);
+      //alert('clicked an element: ', element);
     }
   }
   
@@ -132,7 +133,48 @@ class Canvas
   }
 }
 
+function css(obj, dict){
+  Object.assign(obj.style, dict);
+}
+function showContextMenu(r, x, y)
+{
+  /*if (! loadedJQuery){
+    alert("failed to find jquery for update");
+    return;
+  }*/
+  C.menu_active = true;
+  console.log("show context meny");
+  if(!r)
+  {
+    $menu.hide() //menu.style.display = "none";
+    C.menu_active =false;
+    return;
+  }
 
+  $menu.show();
+  //menu.style.display = "block";
+  var m = r.contextMenu;
+  console.log(m);
+  $menu.empty();
+  $menu.css({left:x, top:y});
+  /*css(menu,{
+    left:x,
+    top:y
+  });
+  */
+  for (var i=0; i < m.length; i++)
+  {
+    $('<li>', { text:m[i].text,id: i,  'data-fn':i, }).appendTo($menu[0]);
+  
+    //let li  = document.createElement("li");
+    //li.id = i;
+    //li.textContent = m[i].text;
+    //menu.appendChild(li);
+  }
+
+
+  console.log("created menu", $menu);
+}
 var C;
 function drawableC(event){
   C.addElement(event);
@@ -326,6 +368,9 @@ class Rect extends CanvasObj{
   {
     super(color, width, height, x, y, type, "RECT",  id);
     this.register = this.register.bind(this);
+    this.contextMenu = [{text: "one blue", cb: otherGenRect}, 
+    {text:"2 blue", cb: () => {let opts = {offsetX: 5, offsetY: 5}; genRect(opts);}
+    }];
   }
 
 
@@ -337,7 +382,7 @@ class Rect extends CanvasObj{
     ID_LOOKUP[this.id] = ptr;
   }
 }
-
+function otherGenRect(){ genRect({offsetX: 5, offsetY: 5}, "RECT", "1","RED");}
 
 function genRect(ev, type, id, color)
 {
@@ -533,7 +578,10 @@ class Module extends Rect
 		} else if (signal_type == "UPDATE") 
     { 
 			send(data, "update"); 
-		}
+		} else if (signal_type == "DELETE") 
+    {
+      send(data, "delete")
+    }
   }
 }
 
@@ -745,6 +793,31 @@ var drawablecbN = "rect"; // initial callback
 
 
 
+var CB_LU = {
+  "linear" : {
+    0: function(){
+      let name = prompt("update Name? "); 
+      ptr.id = name;
+      },
+    1: function(){ let outcome = prompt("delete " + ptr.id + "?"); if (outcome == "y") ptr.sender("DELETE"); 
+    }
+  },
+  "relu":{
+    0: function(){
+      let name = prompt("name this something");
+      otherGenRect();
+      ptr.hyperp["name"] = name;}},
+  "leakyrelu": { 
+    0 : function(){ 
+      let alpha = prompt("leaky value for alpha? "); 
+      ptr.hyperp["alpha"] = alpha; 
+      ptr.update()
+    }
+  }
+
+
+
+};
 // CALLBACK DICTIONARY
 var ID_TO_CB = { 
   "output"  : Output,
