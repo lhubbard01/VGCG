@@ -1,0 +1,6 @@
+/node_modules/*
+/vgcg/src/node_modules/*
+/package-lock.json
+/vgcg/src/package-lock.json
+*.pyc
+*.log
